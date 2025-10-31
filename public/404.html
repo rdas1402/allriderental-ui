@@ -4,8 +4,16 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-      sessionStorage.redirect = location.href;
-      location.replace('/allriderental-app/');
+      // Single Page Apps for GitHub Pages
+      var segmentCount = 0;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        '/allriderental-app' +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + 
+        l.search +
+        l.hash
+      );
     </script>
   </head>
   <body>
