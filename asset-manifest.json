@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/aliriderental-ui/static/css/main.26abae8c.css",
-    "main.js": "/aliriderental-ui/static/js/main.7acc6a37.js",
-    "static/media/logo.png": "/aliriderental-ui/static/media/logo.93db29ed79c36159b938.png",
-    "static/media/car1.jpg": "/aliriderental-ui/static/media/car1.c4be24a7b8f04b7c19da.jpg",
-    "static/media/bike2.jpg": "/aliriderental-ui/static/media/bike2.a85b9ee21367e082509c.jpg",
-    "static/media/bike1.jpg": "/aliriderental-ui/static/media/bike1.1f985a7dccbeb85425ba.jpg",
-    "index.html": "/aliriderental-ui/index.html",
-    "main.26abae8c.css.map": "/aliriderental-ui/static/css/main.26abae8c.css.map",
-    "main.7acc6a37.js.map": "/aliriderental-ui/static/js/main.7acc6a37.js.map"
+    "main.css": "/allriderental-ui/static/css/main.26abae8c.css",
+    "main.js": "/allriderental-ui/static/js/main.b1c236ee.js",
+    "static/media/logo.png": "/allriderental-ui/static/media/logo.93db29ed79c36159b938.png",
+    "static/media/car1.jpg": "/allriderental-ui/static/media/car1.c4be24a7b8f04b7c19da.jpg",
+    "static/media/bike2.jpg": "/allriderental-ui/static/media/bike2.a85b9ee21367e082509c.jpg",
+    "static/media/bike1.jpg": "/allriderental-ui/static/media/bike1.1f985a7dccbeb85425ba.jpg",
+    "index.html": "/allriderental-ui/index.html",
+    "main.26abae8c.css.map": "/allriderental-ui/static/css/main.26abae8c.css.map",
+    "main.b1c236ee.js.map": "/allriderental-ui/static/js/main.b1c236ee.js.map"
   },
   "entrypoints": [
     "static/css/main.26abae8c.css",
-    "static/js/main.7acc6a37.js"
+    "static/js/main.b1c236ee.js"
   ]
 }
