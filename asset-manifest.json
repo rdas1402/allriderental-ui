@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.26abae8c.css",
+    "main.js": "/static/js/main.e332b81b.js",
+    "static/media/logo.png": "/static/media/logo.93db29ed79c36159b938.png",
+    "static/media/car1.jpg": "/static/media/car1.c4be24a7b8f04b7c19da.jpg",
+    "static/media/bike2.jpg": "/static/media/bike2.a85b9ee21367e082509c.jpg",
+    "static/media/bike1.jpg": "/static/media/bike1.1f985a7dccbeb85425ba.jpg",
+    "index.html": "/index.html",
+    "main.26abae8c.css.map": "/static/css/main.26abae8c.css.map",
+    "main.e332b81b.js.map": "/static/js/main.e332b81b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.26abae8c.css",
+    "static/js/main.e332b81b.js"
+  ]
+}
