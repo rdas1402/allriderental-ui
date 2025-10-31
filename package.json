@@ -1,5 +1,6 @@
 {
   "name": "all-ride-rental",
+  "homepage": "https://rdas1402.github.io/allriderental-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
