@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { citiesAPI } from "../services/apiService"; // Import your API service
 
 const CityPopup = ({ onClose, onCitySelect }) => {
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch cities from the Java microservice
-    axios.get("http://localhost:8080/api/cities")
-      .then((response) => {
-        setCities(response.data);
+    const fetchCities = async () => {
+      try {
+        const citiesData = await citiesAPI.getCities();
+        setCities(citiesData);
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching cities:", error);
+        setError("Failed to load cities. Please try again.");
         setLoading(false);
-      });
+      }
+    };
+
+    fetchCities();
   }, []);
 
   return (
@@ -25,6 +29,8 @@ const CityPopup = ({ onClose, onCitySelect }) => {
 
         {loading ? (
           <p className="text-center text-gray-600">Loading cities...</p>
+        ) : error ? (
+          <p className="text-center text-red-600">{error}</p>
         ) : (
           <ul className="space-y-2">
             {cities.map((city, index) => (

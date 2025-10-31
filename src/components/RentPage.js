@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { citiesAPI, vehiclesAPI } from "../services/apiService";
 
 const RentPage = () => {
   const location = useLocation();
@@ -20,61 +21,37 @@ const RentPage = () => {
   const [citiesError, setCitiesError] = useState("");
   const [vehiclesError, setVehiclesError] = useState("");
 
-  const API_BASE_URL = "http://localhost:8080/api";
-
-  // Fetch cities from Java API
+  // Fetch cities from Java API using API service
   const fetchCities = async () => {
     try {
       setCitiesLoading(true);
       setCitiesError("");
       
-      const response = await fetch(`${API_BASE_URL}/cities`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to load cities: ${response.status} ${response.statusText}`);
-      }
-
-      const citiesData = await response.json();
+      const citiesData = await citiesAPI.getCities();
       // Add "All Cities" option
       setCities([{ id: 0, name: "All Cities" }, ...citiesData]);
       
     } catch (err) {
       console.error('Error fetching cities:', err);
-      setCitiesError(err.message);
+      setCitiesError(err.message || "Failed to load cities");
       setCities([]); // Clear cities on error
     } finally {
       setCitiesLoading(false);
     }
   };
 
-  // Fetch all vehicles from Java API
+  // Fetch all vehicles from Java API using API service
   const fetchAllVehicles = async () => {
     try {
       setVehiclesLoading(true);
       setVehiclesError("");
       
-      const response = await fetch(`${API_BASE_URL}/vehicles`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to load vehicles: ${response.status} ${response.statusText}`);
-      }
-
-      const vehiclesData = await response.json();
+      const vehiclesData = await vehiclesAPI.getVehicles();
       setAllVehicles(vehiclesData);
       
     } catch (err) {
       console.error('Error fetching vehicles:', err);
-      setVehiclesError(err.message);
+      setVehiclesError(err.message || "Failed to load vehicles");
       setAllVehicles([]); // Clear vehicles on error
     } finally {
       setVehiclesLoading(false);
@@ -177,7 +154,7 @@ const RentPage = () => {
                   {error && <p>🚨 Booking: {error}</p>}
                 </div>
                 <p className="text-red-200/80 text-sm mt-2">
-                  Please ensure the backend server is running on http://localhost:8080
+                  Please check your internet connection and ensure the backend server is running
                 </p>
               </div>
               <button
@@ -370,7 +347,7 @@ const RentPage = () => {
                 <div className="space-y-3 text-white/60 text-sm">
                   <p>🔍 Please check if:</p>
                   <ul className="space-y-1">
-                    <li>• Backend server is running on http://localhost:8080</li>
+                    <li>• Backend server is running properly</li>
                     <li>• CORS is properly configured</li>
                     <li>• API endpoints are accessible</li>
                   </ul>

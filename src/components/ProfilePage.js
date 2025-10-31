@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { authAPI } from "../sevices/apiService"; // Import your API service
+import { authAPI } from "../services/apiService"; // Import your API service
 
 const ProfilePage = () => {
   const navigate = useNavigate();

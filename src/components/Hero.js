@@ -1,26 +1,32 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { citiesAPI } from "../services/apiService"; // Import your API service
 
 function Hero() {
   const [showModal, setShowModal] = useState(false);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (showModal) {
       setLoading(true);
-      axios
-        .get("http://localhost:8080/api/cities")
-        .then((response) => {
-          setCities(response.data);
+      setError(null);
+      
+      const fetchCities = async () => {
+        try {
+          const citiesData = await citiesAPI.getCities();
+          setCities(citiesData);
           setLoading(false);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error fetching cities:", error);
+          setError("Failed to load cities. Please try again.");
           setLoading(false);
-        });
+        }
+      };
+
+      fetchCities();
     }
   }, [showModal]);
 
@@ -54,6 +60,8 @@ function Hero() {
 
             {loading ? (
               <p className="text-center text-gray-600">Loading cities...</p>
+            ) : error ? (
+              <p className="text-center text-red-600">{error}</p>
             ) : (
               <div className="space-y-2">
                 {cities.map((cityObj, index) => (

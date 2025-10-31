@@ -1,8 +1,17 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL+"/api";
+// FIXED: Add proper fallback and handle undefined case
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'https://allriderental-fafbg7dnhzf3afbg.canadacentral-01.azurewebsites.net') + "/api";
 
 // Generic API request function
 const apiRequest = async (endpoint, options = {}) => {
+  // Validate URL before making request
+  if (!API_BASE_URL || API_BASE_URL.includes('undefined')) {
+    console.error('API_BASE_URL is undefined. Check your environment variables.');
+    throw new Error('API configuration error: Base URL is not defined');
+  }
+  
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  console.log('Making API call to:', url); // Debug log
   
   const defaultOptions = {
     headers: {
