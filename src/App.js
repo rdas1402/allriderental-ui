@@ -20,7 +20,7 @@ import BookingsPage from './components/BookingsPage';
 
 function App() {
   return (
-    <Router basename="/aliriderental-ui">
+    <Router basename="/allriderental-ui">
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
