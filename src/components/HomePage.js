@@ -50,23 +50,39 @@ const HomePage = () => {
         </div>
 
         {/* Vehicle Selection Section */}
+        {/* Vehicle Selection Section */}
         <div className="grid md:grid-cols-2 gap-8 mb-20 max-w-4xl mx-auto">
           <div 
             className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 border border-white/20 hover:border-gold-400 hover:translate-y-[-8px] group"
             onClick={handleRentCars}
           >
-            <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">🚗</div>
+            {/* Car Image */}
+            <div className="w-full h-48 mb-6 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-300">
+              <img 
+                src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                alt="Premium Cars"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h2 className="text-2xl font-semibold text-white mb-4">Premium Cars</h2>
             <p className="text-white/70 mb-4">Luxury sedans, SUVs, and sports cars for every occasion</p>
             <div className="text-gold-300 font-medium flex items-center group-hover:translate-x-2 transition-transform duration-300">
               Discover our fleet <span className="ml-2">→</span>
             </div>
           </div>
+          
           <div 
             className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 border border-white/20 hover:border-gold-400 hover:translate-y-[-8px] group"
             onClick={handleRentBikes}
           >
-            <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">🏍️</div>
+            {/* Bike Image */}
+            <div className="w-full h-48 mb-6 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-300">
+              <img 
+                src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
+                alt="Adventure Bikes"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h2 className="text-2xl font-semibold text-white mb-4">Adventure Bikes</h2>
             <p className="text-white/70 mb-4">Premium motorcycles for your thrilling adventures</p>
             <div className="text-gold-300 font-medium flex items-center group-hover:translate-x-2 transition-transform duration-300">

@@ -18,7 +18,7 @@ const LoginPage = () => {
     dob: ""
   });
 
-  // Get navigation state
+  // Get navigation state - SCENARIO 1: Direct login or SCENARIO 2: From booking
   const vehicle = location.state?.vehicle;
   const from = location.state?.from;
   const action = location.state?.action;
@@ -32,17 +32,41 @@ const LoginPage = () => {
   }, [countdown]);
 
   const handlePostLoginNavigation = (userProfile, userBookings) => {
+    // SCENARIO 2: If user was trying to book a vehicle
     if (vehicle) {
-      navigate("/booking-confirmation", { state: { vehicle, user: userProfile } });
-    } else if (action === "profile" || from === "/profile") {
+      // Navigate to booking page with vehicle data
+      navigate("/booking", { 
+        state: { 
+          vehicle, 
+          user: userProfile 
+        } 
+      });
+    } 
+    // SCENARIO 1.1: If user exists and was accessing profile
+    else if (action === "profile" || from === "/profile") {
       navigate("/profile", { 
         state: { user: userProfile, bookings: userBookings } 
       });
-    } else if (from && from !== "/") {
+    }
+    // SCENARIO 1.2: If user exists and was coming from other pages
+    else if (from && from !== "/") {
       navigate(from, { state: { user: userProfile } });
-    } else {
+    } 
+    // SCENARIO 1.1: Default - navigate to home
+    else {
       navigate("/", { state: { user: userProfile } });
     }
+  };
+
+  const handleNewUserRegistrationNavigation = (userProfile) => {
+    // SCENARIO 1.2: New user completes registration - go to profile
+    navigate("/profile", { 
+      state: { 
+        user: userProfile,
+        scrollToProfile: true,
+        isNewUser: true 
+      } 
+    });
   };
 
   // Traditional OTP methods
@@ -112,20 +136,25 @@ const LoginPage = () => {
         throw new Error(verifyResponse.message || "Invalid OTP");
       }
       
-      // Check if user exists
+      // Check if user exists in DB
       const userCheck = await authAPI.checkUserExists(phoneNumber);
       
       if (userCheck.exists) {
+        // SCENARIO 1.1 & 2.1: User exists - fetch profile and bookings
         const userProfile = await authAPI.getUserProfile(phoneNumber);
         const userBookings = await authAPI.getUserBookings(phoneNumber);
         
+        // Store in localStorage
         localStorage.setItem("userPhone", phoneNumber);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userData", JSON.stringify(userProfile));
         localStorage.setItem("userBookings", JSON.stringify(userBookings || []));
         
+        console.log("User exists, navigating to appropriate page...");
         handlePostLoginNavigation(userProfile, userBookings || []);
       } else {
+        // SCENARIO 1.2: User doesn't exist - show registration form
+        console.log("New user, showing registration form...");
         setUserExists(false);
       }
     } catch (err) {
@@ -168,12 +197,14 @@ const LoginPage = () => {
 
       const newUser = await authAPI.createUser(userData);
       
+      // Store in localStorage
       localStorage.setItem("userPhone", phoneNumber);
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userData", JSON.stringify(newUser));
       localStorage.setItem("userBookings", JSON.stringify([]));
       
-      handlePostLoginNavigation(newUser, []);
+      console.log("New user registered, navigating to profile...");
+      handleNewUserRegistrationNavigation(newUser);
     } catch (err) {
       console.error("Registration error:", err);
       setError(err.message || "Failed to create account. Please try again.");
@@ -235,6 +266,12 @@ const LoginPage = () => {
                     : "Login to your account"
               }
             </p>
+            {/* Show scenario info */}
+            {vehicle && (
+              <p className="text-gold-300 text-sm mt-2">
+                📍 Booking Flow: {vehicle.name}
+              </p>
+            )}
           </div>
 
           {/* Error Message */}
@@ -256,9 +293,15 @@ const LoginPage = () => {
             </div>
           )}
 
-          {/* Registration Form for New Users */}
+          {/* Registration Form for New Users - SCENARIO 1.2 */}
           {userExists === false ? (
             <div className="space-y-6">
+              <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-4">
+                <p className="text-blue-200 text-center text-sm">
+                  🎉 Welcome! Please complete your profile to continue
+                </p>
+              </div>
+
               <div>
                 <label className="block text-white/80 text-sm font-medium mb-2">
                   Full Name *
@@ -321,7 +364,7 @@ const LoginPage = () => {
                     Creating Account...
                   </div>
                 ) : (
-                  "Complete Registration"
+                  "Complete Registration & Continue"
                 )}
               </button>
 
@@ -475,6 +518,12 @@ const LoginPage = () => {
               <span className="bg-gold-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">3</span>
               <span>Enter OTP to verify and login</span>
             </div>
+            {vehicle && (
+              <div className="flex items-start">
+                <span className="bg-green-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">4</span>
+                <span className="text-green-400">Continue to book your {vehicle.name}</span>
+              </div>
+            )}
             <div className="text-green-400 text-xs mt-2">
               ✓ Real OTPs are sent via MSG91 WhatsApp service
             </div>

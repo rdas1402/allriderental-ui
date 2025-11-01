@@ -16,7 +16,7 @@ import CancellationPolicy from './components/CancellationPolicy.js';
 import LoginPage from './components/LoginPage';
 import BookingConfirmationPage from './components/BookingConfirmationPage';
 import ProfilePage from './components/ProfilePage';
-import BookingsPage from './components/BookingsPage';
+import BookingPage from './components/BookingPage';
 
 function App() {
   return (
@@ -38,7 +38,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/booking" element={<BookingPage />} />
         </Routes>
       </Layout>
     </Router>

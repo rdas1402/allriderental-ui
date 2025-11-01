@@ -1,3 +1,5 @@
+// services/apiService.js
+
 // FIXED: Add proper fallback and handle undefined case
 const API_BASE_URL = (process.env.REACT_APP_API_URL || 'https://allriderental-fafbg7dnhzf3afbg.canadacentral-01.azurewebsites.net') + "/api";
 
@@ -49,7 +51,7 @@ export const vehiclesAPI = {
   getVehicleCounts: () => apiRequest('/vehicles/counts'),
 };
 
-// Bookings API
+// Bookings API - Updated with all endpoints including getBookingsByVehicle
 export const bookingsAPI = {
   createBooking: (bookingData) => 
     apiRequest('/bookings', {
@@ -58,7 +60,43 @@ export const bookingsAPI = {
     }),
   
   getBookings: () => apiRequest('/bookings'),
-  getBookingsByCustomer: (email) => apiRequest(`/bookings/customer/${email}`),
+  
+  getBookingsByCustomer: (phone) => apiRequest(`/bookings/customer/${phone}`),
+  
+  // UPDATED: Get bookings by vehicle ID for date blocking
+  getBookingsByVehicle: async (vehicleId) => {
+    try {
+      const response = await apiRequest(`/bookings/vehicle/${vehicleId}`);
+      console.log("Bookings by vehicle API response:", response);
+      return response;
+    } catch (error) {
+      console.error("Error in getBookingsByVehicle:", error);
+      // Return fallback structure
+      return {
+        success: true,
+        data: [],
+        message: 'Using fallback data due to API error'
+      };
+    }
+  },
+  
+  getBookingById: (id) => apiRequest(`/bookings/${id}`),
+  
+  updateBookingStatus: (id, status) => 
+    apiRequest(`/bookings/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+  
+  cancelBooking: (id) => 
+    apiRequest(`/bookings/${id}/cancel`, {
+      method: 'PUT',
+    }),
+  
+  getBookingStats: () => apiRequest('/bookings/stats'),
+  
+  checkVehicleAvailability: (vehicleId, startDate, endDate) => 
+    apiRequest(`/bookings/availability?vehicleId=${vehicleId}&startDate=${startDate}&endDate=${endDate}`),
 };
 
 // Authentication API
@@ -121,5 +159,12 @@ export const authAPI = {
   // Get user bookings
   getUserBookings: async (phoneNumber) => {
     return apiRequest(`/auth/bookings/${phoneNumber}`);
-  }
+  },
+
+  // Get user profile with bookings
+  getUserProfileWithBookings: async (phoneNumber) => {
+    return apiRequest(`/auth/profile/${phoneNumber}`);
+  },
 };
+
+export default apiRequest;

@@ -101,10 +101,27 @@ const RentPage = () => {
     fetchAllVehicles();
   }, []);
 
-  // Handle booking
+  // Handle booking - SCENARIO 2
   const handleBookNow = (vehicle) => {
-    // Navigate to login page with vehicle data
-    navigate("/login", { state: { vehicle } });
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const userData = localStorage.getItem("userData");
+
+    if (isLoggedIn && userData) {
+      // SCENARIO 2.1: User is logged in - navigate to booking page directly
+      console.log("User logged in, navigating to booking page...");
+      navigate("/booking", { state: { vehicle } });
+    } else {
+      // SCENARIO 2.2: User not logged in - navigate to login with proper state
+      console.log("User not logged in, redirecting to login...");
+      navigate("/login", { 
+        state: { 
+          vehicle, 
+          from: "/booking",
+          action: "book" 
+        } 
+      });
+    }
   };
 
   // Retry failed API calls

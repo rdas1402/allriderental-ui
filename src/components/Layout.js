@@ -34,7 +34,10 @@ const Layout = ({ children }) => {
     setIsLoggedIn(loggedIn);
     if (loggedIn && userData) {
       try {
-        setUserInfo(JSON.parse(userData));
+        const parsedData = JSON.parse(userData);
+        // Extract user info from the nested structure
+        const userInfo = parsedData.profile?.user || parsedData.user || parsedData;
+        setUserInfo(userInfo);
       } catch (error) {
         console.error("Error parsing user data:", error);
         setUserInfo(null);
@@ -56,7 +59,6 @@ const Layout = ({ children }) => {
       setShowDropdown(!showDropdown);
     } else {
       // If not logged in, navigate to login page
-      // Pass the current location to redirect back after login
       navigate("/login", { 
         state: { 
           from: location.pathname,
@@ -70,6 +72,7 @@ const Layout = ({ children }) => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userData");
     localStorage.removeItem("userPhone");
+    localStorage.removeItem("userBookings");
     setIsLoggedIn(false);
     setUserInfo(null);
     setShowDropdown(false);
@@ -77,12 +80,12 @@ const Layout = ({ children }) => {
   };
 
   const handleViewProfile = () => {
-    navigate("/profile");
+    navigate("/profile", { state: { scrollToProfile: true } });
     setShowDropdown(false);
   };
 
   const handleViewBookings = () => {
-    navigate("/bookings");
+    navigate("/profile", { state: { scrollToBookings: true } });
     setShowDropdown(false);
   };
 

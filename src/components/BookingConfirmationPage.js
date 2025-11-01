@@ -1,23 +1,42 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const BookingConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const vehicle = location.state?.vehicle;
+  const { vehicle, booking, user } = location.state || {};
 
-  if (!vehicle) {
-    navigate("/rent");
-    return null;
-  }
+  useEffect(() => {
+    // If no booking data, try to get from localStorage as fallback
+    if (!vehicle || !booking) {
+      const userBookings = JSON.parse(localStorage.getItem("userBookings") || "[]");
+      const latestBooking = userBookings[0]; // Get the most recent booking
+      
+      if (latestBooking) {
+        // You might need to reconstruct the vehicle object from the booking data
+        // For now, redirect to rent if we can't properly reconstruct
+        console.log("Found booking in localStorage:", latestBooking);
+      } else {
+        navigate("/rent");
+      }
+    }
+  }, [vehicle, booking, navigate]);
 
   const handleContinueRenting = () => {
     navigate("/rent");
   };
 
   const handleViewBookings = () => {
-    navigate("/my-bookings");
+    navigate("/profile");
   };
+
+  if (!vehicle && !booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen">
@@ -41,7 +60,7 @@ const BookingConfirmationPage = () => {
           </h1>
           
           <p className="text-white/70 text-lg mb-8">
-            Your {vehicle.name} has been successfully booked
+            Your {vehicle?.name || booking?.vehicle} has been successfully booked
           </p>
 
           {/* Vehicle Details */}
@@ -49,14 +68,14 @@ const BookingConfirmationPage = () => {
             <div className="flex items-center space-x-6">
               <div 
                 className="w-24 h-24 bg-cover bg-center rounded-lg"
-                style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
+                style={{ backgroundImage: `url(${vehicle?.imageUrl || booking?.vehicleImage})` }}
               ></div>
               <div className="flex-1 text-left">
-                <h3 className="text-white font-semibold text-xl mb-2">{vehicle.name}</h3>
-                <p className="text-gold-400 font-semibold text-lg mb-1">{vehicle.price}</p>
-                <p className="text-white/60 mb-2">📍 {vehicle.city}</p>
+                <h3 className="text-white font-semibold text-xl mb-2">{vehicle?.name || booking?.vehicle}</h3>
+                <p className="text-gold-400 font-semibold text-lg mb-1">{vehicle?.price || booking?.total}</p>
+                <p className="text-white/60 mb-2">📍 {vehicle?.city || booking?.pickupLocation}</p>
                 <div className="flex flex-wrap gap-1">
-                  {vehicle.features.map((feature, index) => (
+                  {(vehicle?.features || booking?.features || []).map((feature, index) => (
                     <span 
                       key={index}
                       className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
@@ -75,7 +94,7 @@ const BookingConfirmationPage = () => {
             <div className="grid grid-cols-2 gap-4 text-left">
               <div>
                 <p className="text-white/60 text-sm">Booking ID</p>
-                <p className="text-white font-medium">#BK{Date.now().toString().slice(-6)}</p>
+                <p className="text-white font-medium">{booking?.id || `#BK${Date.now().toString().slice(-6)}`}</p>
               </div>
               <div>
                 <p className="text-white/60 text-sm">Booking Date</p>
@@ -83,12 +102,18 @@ const BookingConfirmationPage = () => {
               </div>
               <div>
                 <p className="text-white/60 text-sm">Pickup Location</p>
-                <p className="text-white font-medium">{vehicle.city}</p>
+                <p className="text-white font-medium">{vehicle?.city || booking?.pickupLocation}</p>
               </div>
               <div>
                 <p className="text-white/60 text-sm">Status</p>
                 <p className="text-green-400 font-medium">Confirmed</p>
               </div>
+              {booking?.duration && (
+                <div className="col-span-2">
+                  <p className="text-white/60 text-sm">Rental Duration</p>
+                  <p className="text-white font-medium">{booking.duration}</p>
+                </div>
+              )}
             </div>
           </div>
 
