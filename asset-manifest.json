@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/allriderental-ui/static/css/main.4709b7db.css",
-    "main.js": "/allriderental-ui/static/js/main.64d52caa.js",
+    "main.css": "/allriderental-ui/static/css/main.f02dd689.css",
+    "main.js": "/allriderental-ui/static/js/main.51d1b8fa.js",
     "static/media/logo.png": "/allriderental-ui/static/media/logo.93db29ed79c36159b938.png",
     "static/media/car1.jpg": "/allriderental-ui/static/media/car1.c4be24a7b8f04b7c19da.jpg",
     "static/media/bike2.jpg": "/allriderental-ui/static/media/bike2.a85b9ee21367e082509c.jpg",
     "static/media/bike1.jpg": "/allriderental-ui/static/media/bike1.1f985a7dccbeb85425ba.jpg",
     "index.html": "/allriderental-ui/index.html",
-    "main.4709b7db.css.map": "/allriderental-ui/static/css/main.4709b7db.css.map",
-    "main.64d52caa.js.map": "/allriderental-ui/static/js/main.64d52caa.js.map"
+    "main.f02dd689.css.map": "/allriderental-ui/static/css/main.f02dd689.css.map",
+    "main.51d1b8fa.js.map": "/allriderental-ui/static/js/main.51d1b8fa.js.map"
   },
   "entrypoints": [
-    "static/css/main.4709b7db.css",
-    "static/js/main.64d52caa.js"
+    "static/css/main.f02dd689.css",
+    "static/js/main.51d1b8fa.js"
   ]
 }
