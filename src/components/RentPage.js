@@ -20,6 +20,7 @@ const RentPage = () => {
   const [error, setError] = useState("");
   const [citiesError, setCitiesError] = useState("");
   const [vehiclesError, setVehiclesError] = useState("");
+  const [sortOption, setSortOption] = useState("recommended"); // New state for sorting
 
   // Fetch cities from Java API using API service
   const fetchCities = async () => {
@@ -58,7 +59,41 @@ const RentPage = () => {
     }
   };
 
-  // Filter vehicles based on selected city and type
+  // Sort vehicles based on selected option
+  const sortVehicles = (vehicles, option) => {
+    const sortedVehicles = [...vehicles];
+    
+    switch (option) {
+      case "price-low-high":
+        return sortedVehicles.sort((a, b) => {
+          const priceA = extractPrice(a.price);
+          const priceB = extractPrice(b.price);
+          return priceA - priceB;
+        });
+      
+      case "price-high-low":
+        return sortedVehicles.sort((a, b) => {
+          const priceA = extractPrice(a.price);
+          const priceB = extractPrice(b.price);
+          return priceB - priceA;
+        });
+      
+      case "rating":
+        return sortedVehicles.sort((a, b) => b.rating - a.rating);
+      
+      case "recommended":
+      default:
+        return sortedVehicles; // Default order (as returned from API)
+    }
+  };
+
+  // Helper function to extract numeric price from string (e.g., "₹1200/day" -> 1200)
+  const extractPrice = (priceString) => {
+    const priceMatch = priceString.match(/\d+/);
+    return priceMatch ? parseInt(priceMatch[0]) : 0;
+  };
+
+  // Filter and sort vehicles based on selected city, type, and sort option
   useEffect(() => {
     if (allVehicles.length === 0) return;
 
@@ -68,8 +103,15 @@ const RentPage = () => {
       filtered = filtered.filter(vehicle => vehicle.city === selectedCity);
     }
     
-    setFilteredVehicles(filtered);
-  }, [selectedCity, selectedType, allVehicles]);
+    // Apply sorting
+    const sortedAndFiltered = sortVehicles(filtered, sortOption);
+    setFilteredVehicles(sortedAndFiltered);
+  }, [selectedCity, selectedType, allVehicles, sortOption]); // Added sortOption dependency
+
+  // Handle sort option change
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+  };
 
   // Calculate counts based on API data
   const carsCount = allVehicles.filter(vehicle => vehicle.type === "Car").length;
@@ -338,11 +380,15 @@ const RentPage = () => {
                 </div>
                 
                 {!vehiclesError && (
-                  <select className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white backdrop-blur-sm focus:ring-2 focus:ring-gold-400 focus:border-gold-400">
-                    <option className="text-slate-800">Sort by: Recommended</option>
-                    <option className="text-slate-800">Sort by: Price (Low to High)</option>
-                    <option className="text-slate-800">Sort by: Price (High to Low)</option>
-                    <option className="text-slate-800">Sort by: Rating</option>
+                  <select 
+                    value={sortOption}
+                    onChange={handleSortChange}
+                    className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white backdrop-blur-sm focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+                  >
+                    <option value="recommended" className="text-slate-800">Sort by: Recommended</option>
+                    <option value="price-low-high" className="text-slate-800">Sort by: Price (Low to High)</option>
+                    <option value="price-high-low" className="text-slate-800">Sort by: Price (High to Low)</option>
+                    <option value="rating" className="text-slate-800">Sort by: Rating</option>
                   </select>
                 )}
               </div>

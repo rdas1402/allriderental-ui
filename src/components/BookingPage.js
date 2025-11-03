@@ -276,14 +276,14 @@ const BookingPage = () => {
   };
 
   // Fixed: Properly handle localStorage data format (EXISTING LOGIC - UNCHANGED)
-  const storeBookingInLocalStorage = (bookingPayload) => {
+  const storeBookingInLocalStorage = (booking) => {
     try {
       // Get existing bookings from localStorage - handle different formats
       const storedBookings = localStorage.getItem("userBookings");
       let existingBookings = [];
-
+  
       console.log("Stored bookings:", storedBookings);
-
+  
       if (storedBookings) {
         try {
           const parsedData = JSON.parse(storedBookings);
@@ -311,33 +311,9 @@ const BookingPage = () => {
           existingBookings = [];
         }
       }
-
-      // Create new booking object for localStorage
-      const newBooking = {
-        id: `BK${Date.now()}`,
-        vehicleId: vehicle.id,
-        vehicleName: vehicle.name,
-        vehicleImage: vehicle.imageUrl,
-        date: new Date().toLocaleDateString(),
-        duration: `${Math.ceil((new Date(bookingPayload.endDate) - new Date(bookingPayload.startDate)) / (1000 * 60 * 60 * 24))} days`,
-        totalAmount: bookingPayload.totalAmount,
-        total: `₹${bookingPayload.totalAmount.toLocaleString()}`,
-        status: 'Confirmed',
-        pickupLocation: bookingPayload.pickupLocation,
-        bookingDate: new Date().toISOString(),
-        features: vehicle.features || [],
-        startDate: bookingPayload.startDate,
-        endDate: bookingPayload.endDate,
-        pickupTime: bookingPayload.pickupTime,
-        dropoffTime: bookingPayload.dropoffTime,
-        insurance: bookingPayload.insurance,
-        additionalDriver: bookingPayload.additionalDriver,
-        customerPhone: userData?.phone,
-        customerName: userData?.name
-      };
-
+  
       // Add new booking to existing bookings
-      const updatedBookings = [newBooking, ...existingBookings];
+      const updatedBookings = [booking, ...existingBookings];
       
       // Save back to localStorage with consistent structure
       const storageData = {
@@ -349,9 +325,9 @@ const BookingPage = () => {
       
       localStorage.setItem("userBookings", JSON.stringify(storageData));
       
-      console.log("Booking stored in localStorage:", newBooking);
+      console.log("Booking stored in localStorage:", booking);
       console.log("Updated bookings count:", updatedBookings.length);
-      return newBooking;
+      return booking;
     } catch (error) {
       console.error("Error storing booking in localStorage:", error);
       return null;
@@ -362,7 +338,7 @@ const BookingPage = () => {
   const handleConfirmBooking = async () => {
     setIsLoading(true);
     setError("");
-
+  
     // Double-check user data
     if (!userData || !userData.phone) {
       setError("User data not found. Please login again.");
@@ -370,7 +346,7 @@ const BookingPage = () => {
       setShowConfirmation(false);
       return;
     }
-
+  
     try {
       const bookingPayload = {
         vehicleId: vehicle.id,
@@ -388,68 +364,42 @@ const BookingPage = () => {
         totalAmount: calculateTotal(),
         status: "confirmed"
       };
-
+  
       console.log("Making API call to create booking...", bookingPayload);
       
-      // Store booking in localStorage immediately
-      const storedBooking = storeBookingInLocalStorage(bookingPayload);
-      
-      // Call API to create booking
+      // Call API to create booking FIRST - before storing in localStorage
       const response = await bookingsAPI.createBooking(bookingPayload);
       console.log("API Response:", response);
       
       if (response && response.success) {
         console.log("Booking created successfully via API:", response);
         
-        // If API call is successful, update the booking with the real ID from API
-        if (response.bookingId || response.booking?.id) {
-          const realBookingId = response.bookingId || response.booking?.id;
-          console.log("Updating booking ID from API:", realBookingId);
-          
-          // Get current bookings from localStorage
-          const storedBookings = localStorage.getItem("userBookings");
-          if (storedBookings) {
-            try {
-              const parsedData = JSON.parse(storedBookings);
-              let updatedBookings = [];
-              
-              // Handle different formats when updating
-              if (Array.isArray(parsedData.bookings)) {
-                updatedBookings = parsedData.bookings.map(booking => 
-                  booking.id === storedBooking.id 
-                    ? { ...booking, id: realBookingId, apiId: realBookingId }
-                    : booking
-                );
-              } else if (Array.isArray(parsedData)) {
-                updatedBookings = parsedData.map(booking => 
-                  booking.id === storedBooking.id 
-                    ? { ...booking, id: realBookingId, apiId: realBookingId }
-                    : booking
-                );
-              }
-              
-              // Save updated bookings back to localStorage
-              localStorage.setItem("userBookings", JSON.stringify({
-                bookings: updatedBookings,
-                success: true,
-                timestamp: new Date().toISOString()
-              }));
-            } catch (updateError) {
-              console.error("Error updating booking ID:", updateError);
-            }
-          }
-        }
+        const realBookingId = response.bookingId || response.booking?.id;
+        
+        // Create the complete booking object for localStorage
+        const bookingForStorage = {
+          ...bookingPayload,
+          id: realBookingId || `BK${Date.now()}`,
+          apiId: realBookingId,
+          vehicleImage: vehicle.imageUrl,
+          date: new Date().toLocaleDateString(),
+          duration: `${Math.ceil((new Date(bookingPayload.endDate) - new Date(bookingPayload.startDate)) / (1000 * 60 * 60 * 24))} days`,
+          total: `₹${bookingPayload.totalAmount.toLocaleString()}`,
+          status: 'Confirmed',
+          bookingDate: new Date().toISOString(),
+          features: vehicle.features || [],
+          customerPhone: userData?.phone,
+          customerName: userData?.name
+        };
+  
+        // Store booking in localStorage ONLY after API success
+        const storedBooking = storeBookingInLocalStorage(bookingForStorage);
         
         // Navigate to confirmation page
         navigate("/booking-confirmation", { 
           state: { 
             vehicle, 
-            booking: storedBooking || {
-              ...bookingPayload,
-              id: response.bookingId || `BK${Date.now()}`,
-              vehicleImage: vehicle.imageUrl,
-              duration: `${Math.ceil((new Date(bookingPayload.endDate) - new Date(bookingPayload.startDate)) / (1000 * 60 * 60 * 24))} days`
-            },
+            booking: storedBooking || bookingForStorage,
             user: userData 
           } 
         });
@@ -460,34 +410,7 @@ const BookingPage = () => {
       console.error("Booking error:", err);
       setError(err.message || "Failed to create booking. Please try again.");
       
-      // Clean up failed booking from localStorage
-      try {
-        const storedBookings = localStorage.getItem("userBookings");
-        if (storedBookings) {
-          const parsedData = JSON.parse(storedBookings);
-          let filteredBookings = [];
-          
-          const tempBookingId = `BK${Date.now()}`;
-          
-          if (Array.isArray(parsedData.bookings)) {
-            filteredBookings = parsedData.bookings.filter(booking => 
-              booking.id !== tempBookingId
-            );
-          } else if (Array.isArray(parsedData)) {
-            filteredBookings = parsedData.filter(booking => 
-              booking.id !== tempBookingId
-            );
-          }
-          
-          localStorage.setItem("userBookings", JSON.stringify({
-            bookings: filteredBookings,
-            success: true,
-            timestamp: new Date().toISOString()
-          }));
-        }
-      } catch (cleanupError) {
-        console.error("Error cleaning up failed booking:", cleanupError);
-      }
+      // No cleanup needed since we never stored anything in localStorage
     } finally {
       setIsLoading(false);
       setShowConfirmation(false);

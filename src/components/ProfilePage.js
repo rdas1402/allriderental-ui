@@ -144,7 +144,7 @@ const ProfilePage = () => {
         
         try {
           console.log("Calling API for profile data...");
-          const response = await authAPI.getProfile(userPhone);
+          const response = await authAPI.getUserProfile(userPhone);
           console.log("API Response:", response);
 
           if (response && response.success) {

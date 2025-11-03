@@ -52,8 +52,51 @@ function VehicleList() {
   const city = queryParams.get("city") || "Unknown City";
   
   const [selectedType, setSelectedType] = useState("Car"); // Default to Car
+  const [sortOption, setSortOption] = useState("price-low-high"); // New state for sorting
 
-  const filteredVehicles = VEHICLES.filter((vehicle) => vehicle.type === selectedType);
+  // Sort vehicles based on selected option
+  const sortVehicles = (vehicles, option) => {
+    const sortedVehicles = [...vehicles];
+    
+    switch (option) {
+      case "price-low-high":
+        return sortedVehicles.sort((a, b) => {
+          const priceA = extractPrice(a.price);
+          const priceB = extractPrice(b.price);
+          return priceA - priceB;
+        });
+      
+      case "price-high-low":
+        return sortedVehicles.sort((a, b) => {
+          const priceA = extractPrice(a.price);
+          const priceB = extractPrice(b.price);
+          return priceB - priceA;
+        });
+      
+      case "rating":
+        return sortedVehicles.sort((a, b) => b.rating - a.rating);
+      
+      default:
+        return sortedVehicles;
+    }
+  };
+
+  // Helper function to extract numeric price from string (e.g., "₹1200/day" -> 1200)
+  const extractPrice = (priceString) => {
+    const priceMatch = priceString.match(/\d+/);
+    return priceMatch ? parseInt(priceMatch[0]) : 0;
+  };
+
+  // Filter and sort vehicles
+  const filteredVehicles = sortVehicles(
+    VEHICLES.filter((vehicle) => vehicle.type === selectedType),
+    sortOption
+  );
+
+  // Handle sort option change
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+  };
 
   const handleVehicleSelect = (vehicleId) => {
     navigate(`/vehicle/${vehicleId}?city=${encodeURIComponent(city)}`);
@@ -193,10 +236,14 @@ function VehicleList() {
                   <span className="text-blue-600 ml-2">({filteredVehicles.length} available)</span>
                 </h3>
                 
-                <select className="border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                  <option>Sort by: Price (Low to High)</option>
-                  <option>Sort by: Price (High to Low)</option>
-                  <option>Sort by: Rating</option>
+                <select 
+                  value={sortOption}
+                  onChange={handleSortChange}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="price-low-high">Sort by: Price (Low to High)</option>
+                  <option value="price-high-low">Sort by: Price (High to Low)</option>
+                  <option value="rating">Sort by: Rating</option>
                 </select>
               </div>
             </div>
