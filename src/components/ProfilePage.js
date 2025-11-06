@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authAPI, adminAPI } from "../services/apiService";
 import VehicleAvailabilityManager from "./VehicleAvailabilityManager";
 import AdminStatsDashboard from "./AdminStatsDashboard";
+import VehiclePriceManager from "../components/VehiclePriceManager";
+import VehiclePurposeManager from "../components/VehiclePurposeManager";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -86,17 +88,18 @@ const ProfilePage = () => {
               setFormData(user);
             }
 
-            if (isUserAdmin) {
-              // For admin users, use the admin-specific data from profile
-              setAdminBookings({
-                upcoming: response.profile?.upcomingBookings || [],
-                completed: response.profile?.completedBookings || []
-              });
-              // Clear personal bookings for admin
-              setUserBookings([]);
-            } else {
-              // For regular users, use personal bookings
-              setUserBookings(response.bookings || response.profile?.bookings || []);
+            // For ALL users (including admin), show personal bookings
+            setUserBookings(response.bookings || response.profile?.bookings || []);
+
+            // Check admin role but don't load admin data here
+            let isUserAdmin = false;
+            try {
+              const adminCheck = await adminAPI.checkAdminRole(userPhone);
+              isUserAdmin = adminCheck.isAdmin;
+              setIsAdmin(isUserAdmin);
+              console.log("User is admin:", isUserAdmin);
+            } catch (adminError) {
+              console.log("Admin check failed:", adminError);
             }
 
             console.log("Data successfully loaded from API");
@@ -494,134 +497,13 @@ const ProfilePage = () => {
           )}
         </div>
 
-        {/* Admin Section */}
-        {isAdmin && (
-          <div ref={adminSectionRef} className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 mb-8">
-            <h2 className="text-2xl font-light text-white mb-6 text-center">
-              <span className="font-semibold text-gold-400">Admin</span> Dashboard
-            </h2>
-
-            {/* Admin Tabs */}
-            <div className="flex space-x-4 mb-6 border-b border-white/20 pb-4 overflow-x-auto">
-              <button
-                onClick={() => setActiveAdminTab('upcoming')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap ${
-                  activeAdminTab === 'upcoming' 
-                    ? 'bg-gold-500 text-slate-900' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                📅 Upcoming Bookings
-              </button>
-              <button
-                onClick={() => setActiveAdminTab('completed')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap ${
-                  activeAdminTab === 'completed' 
-                    ? 'bg-gold-500 text-slate-900' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                ✅ Completed Bookings
-              </button>
-              <button
-                onClick={() => setActiveAdminTab('vehicles')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap ${
-                  activeAdminTab === 'vehicles' 
-                    ? 'bg-gold-500 text-slate-900' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                🚗 Vehicle Management
-              </button>
-              <button
-                onClick={() => setActiveAdminTab('stats')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap ${
-                  activeAdminTab === 'stats' 
-                    ? 'bg-gold-500 text-slate-900' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                📊 Statistics
-              </button>
-            </div>
-
-            {adminLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-400 mx-auto mb-4"></div>
-                <p className="text-white/70">Loading admin data...</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Upcoming Bookings Tab */}
-                {activeAdminTab === 'upcoming' && (
-                  <>
-                    <h3 className="text-xl font-semibold text-white mb-4">
-                      Upcoming Bookings ({adminBookings.upcoming.length})
-                    </h3>
-                    {adminBookings.upcoming.length > 0 ? (
-                      adminBookings.upcoming.map((booking, index) => (
-                        <AdminBookingCard
-                          key={booking.id || index}
-                          booking={booking}
-                          type="upcoming"
-                          onUpdate={handleUpdateBooking}
-                          onCancel={handleCancelBooking}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 bg-white/5 rounded-xl border border-white/10">
-                        <p className="text-white/70">No upcoming bookings found</p>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Completed Bookings Tab */}
-                {activeAdminTab === 'completed' && (
-                  <>
-                    <h3 className="text-xl font-semibold text-white mb-4">
-                      Completed Bookings ({adminBookings.completed.length})
-                    </h3>
-                    {adminBookings.completed.length > 0 ? (
-                      adminBookings.completed.map((booking, index) => (
-                        <AdminBookingCard
-                          key={booking.id || index}
-                          booking={booking}
-                          type="completed"
-                          onUpdate={handleUpdateBooking}
-                          onCancel={handleCancelBooking}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 bg-white/5 rounded-xl border border-white/10">
-                        <p className="text-white/70">No completed bookings found</p>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Vehicle Management Tab */}
-                {activeAdminTab === 'vehicles' && (
-                  <VehicleAvailabilityManager />
-                )}
-
-                {/* Statistics Tab */}
-                {activeAdminTab === 'stats' && (
-                  <AdminStatsDashboard />
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Personal Bookings Section (for non-admin users) */}
-        {!isAdmin && (
-          <div ref={bookingsSectionRef} className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-            <h2 className="text-2xl font-light text-white mb-6 text-center">
-              My <span className="font-semibold text-gold-400">Bookings</span>
-            </h2>
+        <div ref={bookingsSectionRef} className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          <h2 className="text-2xl font-light text-white mb-6 text-center">
+            My <span className="font-semibold text-gold-400">Bookings</span>
+          </h2>
 
-            {userBookings && userBookings.length > 0 ? (
+          {userBookings && userBookings.length > 0 ? (
               <div className="space-y-6">
                 {userBookings.map((booking, index) => (
                   <div key={booking.id || index} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:border-gold-400/50 transition-all duration-300">
@@ -720,7 +602,6 @@ const ProfilePage = () => {
               </div>
             )}
           </div>
-        )}
       </div>
     </div>
   );

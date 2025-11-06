@@ -22,9 +22,8 @@ const Layout = ({ children }) => {
     { name: "Partner with us", id: "partner", path: "/partner" },
   ];
 
-  // Add admin menu items if user is admin
   const adminMenuItems = [
-    { name: "🚗 Admin Dashboard", id: "admin", path: "/profile" }
+    { name: "🚗 Admin Dashboard", id: "admin", path: "/admin" } // Changed from "/profile" to "/admin"
   ];
 
   // Check login status on component mount and route changes
@@ -75,9 +74,14 @@ const Layout = ({ children }) => {
       return startsWithMatch.id;
     }
     
-    // For admin dashboard on profile page
-    if (currentPath === "/profile" && isLoggedIn && userInfo && (userInfo.role === 'admin' || userInfo.isAdmin)) {
+    // For admin dashboard - only highlight when on /admin
+    if (currentPath === "/admin" && isLoggedIn && userInfo && (userInfo.role === 'admin' || userInfo.isAdmin)) {
       return "admin";
+    }
+    
+    // For profile page - highlight profile, not admin
+    if (currentPath === "/profile") {
+      return "profile"; // This should highlight the profile section
     }
     
     // Default to no active item instead of "home"

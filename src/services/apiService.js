@@ -41,14 +41,33 @@ export const citiesAPI = {
   getCities: () => apiRequest('/cities'),
 };
 
-// Vehicles API
+// Vehicles API - UPDATED WITH RENT/SAVE ENDPOINTS
 export const vehiclesAPI = {
+  // Original endpoints (backward compatible)
   getVehicles: () => apiRequest('/vehicles'),
   getVehiclesByCity: (city) => apiRequest(`/vehicles/city/${city}`),
   getVehiclesByType: (type) => apiRequest(`/vehicles/type/${type}`),
   getVehiclesByCityAndType: (city, type) => apiRequest(`/vehicles/filter?city=${city}&type=${type}`),
   getAvailableCities: () => apiRequest('/vehicles/cities'),
   getVehicleCounts: () => apiRequest('/vehicles/counts'),
+  
+  // NEW: Rent-specific endpoints
+  getVehiclesForRent: () => apiRequest('/rent/vehicles'),
+  getVehiclesForRentByCity: (city) => apiRequest(`/rent/vehicles/city/${city}`),
+  getVehiclesForRentByType: (type) => apiRequest(`/rent/vehicles/type/${type}`),
+  getVehiclesForRentByCityAndType: (city, type) => apiRequest(`/rent/vehicles/filter?city=${city}&type=${type}`),
+  getAvailableCitiesForRent: () => apiRequest('/rent/vehicles/cities'),
+  getRentVehicleCounts: () => apiRequest('/rent/vehicles/counts'),
+  getVehicleForRentById: (id) => apiRequest(`/rent/vehicles/${id}`),
+  
+  // NEW: Sale-specific endpoints
+  getVehiclesForSale: () => apiRequest('/sale/vehicles'),
+  getVehiclesForSaleByCity: (city) => apiRequest(`/sale/vehicles/city/${city}`),
+  getVehiclesForSaleByType: (type) => apiRequest(`/sale/vehicles/type/${type}`),
+  getVehiclesForSaleByCityAndType: (city, type) => apiRequest(`/sale/vehicles/filter?city=${city}&type=${type}`),
+  getAvailableCitiesForSale: () => apiRequest('/sale/vehicles/cities'),
+  getSaleVehicleCounts: () => apiRequest('/sale/vehicles/counts'),
+  getVehicleForSaleById: (id) => apiRequest(`/sale/vehicles/${id}`),
 };
 
 // Bookings API - Updated with all endpoints including getBookingsByVehicle
@@ -166,16 +185,6 @@ export const authAPI = {
   getUserBookings: async (phoneNumber) => {
     return apiRequest(`/auth/bookings/${phoneNumber}`);
   },
-
-  // Get user profile with bookings
-  getUserProfileWithBookings: async (phoneNumber) => {
-    return apiRequest(`/auth/profile/${phoneNumber}`);
-  },
-
-  // Admin profile endpoint (if needed separately)
-  getAdminProfile: async (phoneNumber) => {
-    return apiRequest(`/auth/profile/${phoneNumber}`); // Same endpoint now handles both
-  },
 };
 
 // Admin API - Complete and organized
@@ -258,7 +267,7 @@ export const adminAPI = {
     }),
 
   updateVehicle: (vehicleId, vehicleData) =>
-    apiRequest(`/admin/vehicles/${vehicleId}`, {
+    apiRequest(`/vehicles/${vehicleId}`, {
       method: 'PUT',
       body: JSON.stringify(vehicleData),
     }),
@@ -272,6 +281,25 @@ export const adminAPI = {
     apiRequest(`/admin/vehicles/${vehicleId}/availability/clear-conflicts`, {
         method: 'DELETE',
     }),
+
+  // Update vehicle prices
+  updateVehiclePrices: (vehicleId, priceData) =>
+    apiRequest(`/vehicles/${vehicleId}/prices`, {
+      method: 'PUT',
+      body: JSON.stringify(priceData),
+    }),
+
+  // Get available purpose options for a vehicle
+  getAvailablePurposeOptions: (vehicleId) => 
+    apiRequest(`/admin/vehicles/${vehicleId}/purpose-options`),
+  
+  // Update vehicle purpose
+  updateVehiclePurpose: (vehicleId, purpose) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/purpose`, {
+      method: 'PUT',
+      body: JSON.stringify({ purpose }),
+    }),
+
 };
 
 // Vehicle Availability API (for the VehicleAvailabilityManager component)

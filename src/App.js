@@ -18,6 +18,7 @@ import LoginPage from './components/LoginPage';
 import BookingConfirmationPage from './components/BookingConfirmationPage';
 import ProfilePage from './components/ProfilePage';
 import BookingPage from './components/BookingPage';
+import AdminDashboard from './components/AdminDashboard'; // Add this import
 
 function App() {
   const basename = process.env.REACT_APP_BASENAME || '';
@@ -42,6 +43,8 @@ function App() {
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/booking" element={<BookingPage />} />
+          {/* Add Admin Dashboard Route */}
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </Layout>
     </Router>

@@ -11,7 +11,7 @@ const RentPage = () => {
   
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [selectedType, setSelectedType] = useState(initialType);
-  const [cities, setCities] = useState([]);
+  const [cities, setCities] = useState(["All Cities"]);
   const [allVehicles, setAllVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -22,18 +22,18 @@ const RentPage = () => {
   const [vehiclesError, setVehiclesError] = useState("");
   const [sortOption, setSortOption] = useState("recommended");
 
-  // Fetch cities from Java API using API service
+  // Fetch cities from Java API using API service - UPDATED: Use rent-specific cities
   const fetchCities = async () => {
     try {
       setCitiesLoading(true);
       setCitiesError("");
       
-      const citiesData = await citiesAPI.getCities();
+      const citiesData = await vehiclesAPI.getAvailableCitiesForRent(); // UPDATED
       // Add "All Cities" option
-      setCities([{ id: 0, name: "All Cities" }, ...citiesData]);
+      setCities(["All Cities", ...citiesData]);
       
     } catch (err) {
-      console.error('Error fetching cities:', err);
+      console.error('Error fetching cities for rent:', err);
       setCitiesError(err.message || "Failed to load cities");
       setCities([]);
     } finally {
@@ -41,17 +41,17 @@ const RentPage = () => {
     }
   };
 
-  // Fetch all vehicles from Java API using API service
+  // Fetch all vehicles from Java API using API service - UPDATED: Use rent-specific vehicles
   const fetchAllVehicles = async () => {
     try {
       setVehiclesLoading(true);
       setVehiclesError("");
       
-      const vehiclesData = await vehiclesAPI.getVehicles();
+      const vehiclesData = await vehiclesAPI.getVehiclesForRent(); // UPDATED
       setAllVehicles(vehiclesData);
       
     } catch (err) {
-      console.error('Error fetching vehicles:', err);
+      console.error('Error fetching vehicles for rent:', err);
       setVehiclesError(err.message || "Failed to load vehicles");
       setAllVehicles([]);
     } finally {
@@ -261,7 +261,9 @@ const RentPage = () => {
           </span>
         </div>
         
-        <p className="text-gold-400 font-semibold text-lg mb-3">{vehicle.price}</p>
+        <p className="text-gold-400 font-semibold text-lg mb-3">
+          {vehicle.rentPrice || vehicle.price}
+        </p>
         
         <div className="flex flex-wrap gap-1 mb-4">
           {vehicle.features && vehicle.features.map((featureObj, index) => {
@@ -393,20 +395,20 @@ const RentPage = () => {
                   <span className="text-red-200">Failed to load cities</span>
                 </div>
               ) : (
-                <select
+                <select id="city-select"
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   className="w-full p-4 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-gold-400 focus:border-gold-400 text-white backdrop-blur-sm"
                 >
-                  {cities.map(city => (
-                    <option 
-                      key={city.id} 
-                      value={city.name} 
-                      className="text-slate-800"
-                    >
-                      {city.name}
-                    </option>
-                  ))}
+                  {cities.map((city, index) => (
+    <option 
+      key={index} 
+      value={city} 
+      className="text-slate-800"
+    >
+      {city}
+    </option>
+  ))}
                 </select>
               )}
             </div>

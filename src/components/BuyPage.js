@@ -23,20 +23,21 @@ const BuyPage = () => {
       
       let response;
       
+      // UPDATED: Use sale-specific endpoints
       if (filters.type !== "all" && filters.city !== "all") {
-        response = await vehiclesAPI.getVehiclesByCityAndType(filters.city, filters.type);
+        response = await vehiclesAPI.getVehiclesForSaleByCityAndType(filters.city, filters.type);
       } else if (filters.type !== "all") {
-        response = await vehiclesAPI.getVehiclesByType(filters.type);
+        response = await vehiclesAPI.getVehiclesForSaleByType(filters.type);
       } else if (filters.city !== "all") {
-        response = await vehiclesAPI.getVehiclesByCity(filters.city);
+        response = await vehiclesAPI.getVehiclesForSaleByCity(filters.city);
       } else {
-        response = await vehiclesAPI.getVehicles();
+        response = await vehiclesAPI.getVehiclesForSale(); // UPDATED: Get only sale vehicles
       }
       
       setVehicles(response);
     } catch (err) {
-      console.error("Error fetching vehicles:", err);
-      setError("Failed to load vehicles. Please try again later.");
+      console.error("Error fetching sale vehicles:", err);
+      setError("Failed to load vehicles for sale. Please try again later.");
       setVehicles([]);
     } finally {
       setLoading(false);
@@ -45,10 +46,12 @@ const BuyPage = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await vehiclesAPI.getAvailableCities();
+      // UPDATED: Get cities with sale vehicles
+      const response = await vehiclesAPI.getAvailableCitiesForSale();
       setCities(response);
     } catch (err) {
-      console.error("Error fetching cities:", err);
+      console.error("Error fetching cities for sale:", err);
+      // Fallback: extract cities from vehicles data
       if (vehicles.length > 0) {
         const uniqueCities = [...new Set(vehicles.map(vehicle => vehicle.city))];
         setCities(uniqueCities);
@@ -71,7 +74,7 @@ const BuyPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-white text-xl">Loading premium vehicles...</div>
+        <div className="text-white text-xl">Loading premium vehicles for sale...</div>
       </div>
     );
   }
@@ -142,7 +145,7 @@ const BuyPage = () => {
         {/* Error Message */}
         {error && (
           <div className="bg-red-500/20 border border-red-500 text-white p-6 rounded-lg mb-8 text-center">
-            <div className="text-xl mb-2">🚗 Unable to Load Vehicles</div>
+            <div className="text-xl mb-2">🚗 Unable to Load Vehicles for Sale</div>
             <p className="mb-4">{error}</p>
             <button 
               onClick={handleRetry}
@@ -153,7 +156,6 @@ const BuyPage = () => {
           </div>
         )}
 
-        {/* Rest of your component remains the same */}
         {/* Vehicles Grid */}
         {!error && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -173,6 +175,12 @@ const BuyPage = () => {
                       {vehicle.type}
                     </span>
                   </div>
+                  {/* Sale Badge */}
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-red-500/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      FOR SALE
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="p-6">
@@ -187,7 +195,7 @@ const BuyPage = () => {
                   
                   <div className="text-sm text-white/60 mb-4">
                     <div className="flex justify-between mb-2">
-                      <span>💰 {vehicle.price}</span>
+                      <span className="text-gold-400 font-semibold text-lg">💰 {vehicle.salePrice || vehicle.price}</span>
                       {vehicle.fuelType && <span>⛽ {vehicle.fuelType}</span>}
                     </div>
                     {vehicle.rating && vehicle.rating > 0 && (
@@ -233,7 +241,7 @@ const BuyPage = () => {
         {/* No Vehicles Message */}
         {!error && vehicles.length === 0 && (
           <div className="text-center text-white/70 text-xl py-16">
-            No vehicles found matching your criteria.
+            No vehicles for sale found matching your criteria.
           </div>
         )}
 

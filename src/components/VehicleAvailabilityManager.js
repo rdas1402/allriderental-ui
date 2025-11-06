@@ -18,7 +18,7 @@ const VehicleAvailabilityManager = () => {
   const [activeTab, setActiveTab] = useState('set-availability');
   const [hasConflicts, setHasConflicts] = useState(false);
 
-  // Load vehicles
+  // Load vehicles - UPDATED: Use original endpoint for admin management
   useEffect(() => {
     loadVehicles();
   }, []);
@@ -26,7 +26,7 @@ const VehicleAvailabilityManager = () => {
   const loadVehicles = async () => {
     try {
       setLoading(true);
-      const response = await vehiclesAPI.getVehicles();
+      const response = await vehiclesAPI.getVehicles(); // UPDATED: Use original endpoint
       if (response && Array.isArray(response)) {
         setVehicles(response);
       }
@@ -345,7 +345,7 @@ const VehicleAvailabilityManager = () => {
               <option value="">Choose a vehicle...</option>
               {vehicles.map(vehicle => (
                 <option key={vehicle.id} value={vehicle.id} className="text-slate-800">
-                  {vehicle.name} - {vehicle.city} ({vehicle.type})
+                  {vehicle.name} - {vehicle.city} ({vehicle.type}) - {vehicle.purpose}
                 </option>
               ))}
             </select>
@@ -363,7 +363,7 @@ const VehicleAvailabilityManager = () => {
                   <div>
                     <h4 className="text-white font-semibold">{selectedVehicle.name}</h4>
                     <p className="text-gold-400">{selectedVehicle.price}</p>
-                    <p className="text-white/60 text-sm">📍 {selectedVehicle.city} • {selectedVehicle.type}</p>
+                    <p className="text-white/60 text-sm">📍 {selectedVehicle.city} • {selectedVehicle.type} • Purpose: {selectedVehicle.purpose}</p>
                   </div>
                 </div>
               </div>
@@ -500,7 +500,7 @@ const VehicleAvailabilityManager = () => {
               <option value="">Choose a vehicle...</option>
               {vehicles.map(vehicle => (
                 <option key={vehicle.id} value={vehicle.id} className="text-slate-800">
-                  {vehicle.name} - {vehicle.city} ({vehicle.type})
+                  {vehicle.name} - {vehicle.city} ({vehicle.type}) - {vehicle.purpose}
                 </option>
               ))}
             </select>
