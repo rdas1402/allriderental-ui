@@ -1,3 +1,4 @@
+// App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout.js';
@@ -19,8 +20,10 @@ import ProfilePage from './components/ProfilePage';
 import BookingPage from './components/BookingPage';
 
 function App() {
+  const basename = process.env.REACT_APP_BASENAME || '';
+  
   return (
-    <Router basename="/allriderental-ui">
+    <Router basename={basename}>
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />

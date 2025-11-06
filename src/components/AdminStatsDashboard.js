@@ -1,0 +1,169 @@
+// components/AdminStatsDashboard.js
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { adminAPI } from "../services/apiService";
+
+const AdminStatsDashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const response = await adminAPI.getAdminStats();
+      if (response && response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading admin stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNavigation = (path) => {
+    const basename = process.env.REACT_APP_BASENAME || '';
+    navigate(`${basename}${path}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-400 mx-auto mb-4"></div>
+        <p className="text-white/70">Loading statistics...</p>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="text-center py-8 bg-white/5 rounded-xl border border-white/10">
+        <p className="text-white/70">Unable to load statistics</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-white mb-4">Dashboard Overview</h3>
+      
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard 
+          title="Total Bookings" 
+          value={stats.totalBookings} 
+          color="blue" 
+          icon="📊"
+        />
+        <StatCard 
+          title="Upcoming" 
+          value={stats.upcomingBookings} 
+          color="green" 
+          icon="📅"
+        />
+        <StatCard 
+          title="Completed" 
+          value={stats.completedBookings} 
+          color="green" 
+          icon="✅"
+        />
+        <StatCard 
+          title="Cancelled" 
+          value={stats.cancelledBookings} 
+          color="red" 
+          icon="❌"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard 
+          title="Total Revenue" 
+          value={`₹${(stats.totalRevenue || 0).toLocaleString()}`} 
+          color="gold" 
+          icon="💰"
+        />
+        <StatCard 
+          title="Total Vehicles" 
+          value={stats.totalVehicles} 
+          color="blue" 
+          icon="🚗"
+        />
+        <StatCard 
+          title="Available Vehicles" 
+          value={stats.availableVehicles} 
+          color="green" 
+          icon="✅"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard 
+          title="Maintenance" 
+          value={stats.maintenanceVehicles} 
+          color="yellow" 
+          icon="🔧"
+        />
+        <StatCard 
+          title="Total Users" 
+          value={stats.totalUsers} 
+          color="purple" 
+          icon="👥"
+        />
+        <StatCard 
+          title="Active Users" 
+          value={stats.activeUsers} 
+          color="green" 
+          icon="👤"
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+        <h4 className="text-white font-semibold mb-4">Quick Actions</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button 
+            onClick={() => handleNavigation('/rent')}
+            className="bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+          >
+            View All Vehicles
+          </button>
+          <button 
+            onClick={() => handleNavigation('/booking')}
+            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+          >
+            Create Test Booking
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StatCard = ({ title, value, color, icon }) => {
+  const colorClasses = {
+    blue: 'bg-blue-500/20 border-blue-500/30 text-blue-300',
+    green: 'bg-green-500/20 border-green-500/30 text-green-300',
+    red: 'bg-red-500/20 border-red-500/30 text-red-300',
+    gold: 'bg-gold-500/20 border-gold-500/30 text-gold-300',
+    yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300',
+    purple: 'bg-purple-500/20 border-purple-500/30 text-purple-300'
+  };
+
+  return (
+    <div className={`rounded-xl p-4 border ${colorClasses[color]}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-sm opacity-80">{title}</p>
+        </div>
+        <span className="text-2xl">{icon}</span>
+      </div>
+    </div>
+  );
+};
+
+export default AdminStatsDashboard;

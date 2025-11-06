@@ -75,14 +75,20 @@ const BookingConfirmationPage = () => {
                 <p className="text-gold-400 font-semibold text-lg mb-1">{vehicle?.price || booking?.total}</p>
                 <p className="text-white/60 mb-2">📍 {vehicle?.city || booking?.pickupLocation}</p>
                 <div className="flex flex-wrap gap-1">
-                  {(vehicle?.features || booking?.features || []).map((feature, index) => (
-                    <span 
-                      key={index}
-                      className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                    >
-                      {feature}
-                    </span>
-                  ))}
+                  {(vehicle?.features || booking?.features || []).map((feature, index) => {
+                    const featureText = typeof feature === 'string' 
+                      ? feature 
+                      : (feature?.feature || feature?.name || '');
+                    
+                    return featureText ? (
+                      <span 
+                        key={index}
+                        className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
+                      >
+                        {featureText}
+                      </span>
+                    ) : null;
+                  })}
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { citiesAPI, vehiclesAPI } from "../services/apiService";
+import { citiesAPI, vehiclesAPI, bookingsAPI } from "../services/apiService";
 
 const RentPage = () => {
   const location = useLocation();
@@ -20,7 +20,7 @@ const RentPage = () => {
   const [error, setError] = useState("");
   const [citiesError, setCitiesError] = useState("");
   const [vehiclesError, setVehiclesError] = useState("");
-  const [sortOption, setSortOption] = useState("recommended"); // New state for sorting
+  const [sortOption, setSortOption] = useState("recommended");
 
   // Fetch cities from Java API using API service
   const fetchCities = async () => {
@@ -35,7 +35,7 @@ const RentPage = () => {
     } catch (err) {
       console.error('Error fetching cities:', err);
       setCitiesError(err.message || "Failed to load cities");
-      setCities([]); // Clear cities on error
+      setCities([]);
     } finally {
       setCitiesLoading(false);
     }
@@ -53,7 +53,7 @@ const RentPage = () => {
     } catch (err) {
       console.error('Error fetching vehicles:', err);
       setVehiclesError(err.message || "Failed to load vehicles");
-      setAllVehicles([]); // Clear vehicles on error
+      setAllVehicles([]);
     } finally {
       setVehiclesLoading(false);
     }
@@ -83,11 +83,11 @@ const RentPage = () => {
       
       case "recommended":
       default:
-        return sortedVehicles; // Default order (as returned from API)
+        return sortedVehicles;
     }
   };
 
-  // Helper function to extract numeric price from string (e.g., "₹1200/day" -> 1200)
+  // Helper function to extract numeric price from string
   const extractPrice = (priceString) => {
     const priceMatch = priceString.match(/\d+/);
     return priceMatch ? parseInt(priceMatch[0]) : 0;
@@ -103,10 +103,9 @@ const RentPage = () => {
       filtered = filtered.filter(vehicle => vehicle.city === selectedCity);
     }
     
-    // Apply sorting
     const sortedAndFiltered = sortVehicles(filtered, sortOption);
     setFilteredVehicles(sortedAndFiltered);
-  }, [selectedCity, selectedType, allVehicles, sortOption]); // Added sortOption dependency
+  }, [selectedCity, selectedType, allVehicles, sortOption]);
 
   // Handle sort option change
   const handleSortChange = (e) => {
@@ -143,27 +142,167 @@ const RentPage = () => {
     fetchAllVehicles();
   }, []);
 
-  // Handle booking - SCENARIO 2
-  const handleBookNow = (vehicle) => {
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const userData = localStorage.getItem("userData");
+  // Enhanced handleBookNow with availability check
+  const handleBookNow = async (vehicle) => {
+    try {
+      // Check vehicle availability before proceeding
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const availabilityResponse = await bookingsAPI.checkVehicleAvailability(
+        vehicle.id, 
+        today, 
+        tomorrow
+      );
 
-    if (isLoggedIn && userData) {
-      // SCENARIO 2.1: User is logged in - navigate to booking page directly
-      console.log("User logged in, navigating to booking page...");
-      navigate("/booking", { state: { vehicle } });
-    } else {
-      // SCENARIO 2.2: User not logged in - navigate to login with proper state
-      console.log("User not logged in, redirecting to login...");
-      navigate("/login", { 
-        state: { 
-          vehicle, 
-          from: "/booking",
-          action: "book" 
-        } 
-      });
+      if (!availabilityResponse.data) {
+        setError("Vehicle is currently unavailable. Please try another vehicle or date.");
+        return;
+      }
+
+      // Check if user is logged in
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      const userData = localStorage.getItem("userData");
+
+      if (isLoggedIn && userData) {
+        navigate("/booking", { state: { vehicle } });
+      } else {
+        navigate("/login", { 
+          state: { 
+            vehicle, 
+            from: "/booking",
+            action: "book" 
+          } 
+        });
+      }
+    } catch (error) {
+      console.error("Availability check failed:", error);
+      setError("Unable to check vehicle availability. Please try again.");
     }
+  };
+
+  // Vehicle Card Component with Availability Status
+  const VehicleCard = ({ vehicle }) => {
+    const [isAvailable, setIsAvailable] = useState(true);
+    const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+    useEffect(() => {
+      checkAvailability();
+    }, [vehicle]);
+
+    const checkAvailability = async () => {
+      try {
+        setCheckingAvailability(true);
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const response = await bookingsAPI.checkVehicleAvailability(
+          vehicle.id, 
+          today, 
+          tomorrow
+        );
+        
+        setIsAvailable(response.data !== false);
+      } catch (error) {
+        console.error("Error checking availability:", error);
+        setIsAvailable(true);
+      } finally {
+        setCheckingAvailability(false);
+      }
+    };
+
+    return (
+      <div className={`bg-white/10 backdrop-blur-lg rounded-2xl p-6 border transition-all duration-300 hover:translate-y-[-4px] group ${
+        isAvailable 
+          ? "border-white/20 hover:border-gold-400/50" 
+          : "border-red-400/50 hover:border-red-400/70"
+      }`}>
+        <div 
+          className="h-48 bg-cover bg-center rounded-xl mb-4 relative"
+          style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
+        >
+          <div className={`absolute inset-0 rounded-xl ${
+            isAvailable 
+              ? "bg-black/40 group-hover:bg-black/20" 
+              : "bg-red-900/60 group-hover:bg-red-900/50"
+          } transition-all duration-300`}></div>
+          
+          {/* Availability Badge */}
+          <div className="absolute top-3 right-3">
+            {checkingAvailability ? (
+              <span className="bg-gray-500/90 text-white text-xs font-semibold px-2 py-1 rounded flex items-center">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-white mr-1"></div>
+                Checking
+              </span>
+            ) : isAvailable ? (
+              <span className="bg-green-500/90 text-white text-xs font-semibold px-2 py-1 rounded">
+                ✅ Available
+              </span>
+            ) : (
+              <span className="bg-red-500/90 text-white text-xs font-semibold px-2 py-1 rounded">
+                ❌ Unavailable
+              </span>
+            )}
+          </div>
+          
+          <div className="absolute bottom-3 left-3">
+            <span className="bg-gold-500/90 text-slate-900 text-xs font-semibold px-2 py-1 rounded">
+              📍 {vehicle.city}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-start mb-3">
+          <h4 className="text-lg font-semibold text-white group-hover:text-gold-300 transition-colors">
+            {vehicle.name}
+          </h4>
+          <span className="flex items-center bg-gold-500/20 text-gold-300 px-2 py-1 rounded text-sm border border-gold-400/30">
+            ⭐ {vehicle.rating}
+          </span>
+        </div>
+        
+        <p className="text-gold-400 font-semibold text-lg mb-3">{vehicle.price}</p>
+        
+        <div className="flex flex-wrap gap-1 mb-4">
+          {vehicle.features && vehicle.features.map((featureObj, index) => {
+            let featureText = '';
+            
+            if (typeof featureObj === 'string') {
+              featureText = featureObj;
+            } else if (featureObj && typeof featureObj === 'object') {
+              featureText = featureObj.feature || featureObj.name || '';
+              if (typeof featureText === 'object') {
+                featureText = JSON.stringify(featureText);
+              }
+            }
+            
+            if (!featureText) return null;
+            
+            return (
+              <span 
+                key={featureObj.id || index}
+                className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
+              >
+                {featureText}
+              </span>
+            );
+          })}
+        </div>
+        
+        <button 
+          onClick={() => handleBookNow(vehicle)}
+          disabled={!isAvailable || checkingAvailability}
+          className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
+            isAvailable && !checkingAvailability
+              ? "bg-gold-500 hover:bg-gold-600 text-slate-900"
+              : "bg-gray-500 text-gray-300 cursor-not-allowed"
+          }`}
+        >
+          {checkingAvailability ? "Checking Availability..." : 
+           isAvailable ? "Book Now" : "Currently Unavailable"}
+        </button>
+      </div>
+    );
   };
 
   // Retry failed API calls
@@ -425,46 +564,7 @@ const RentPage = () => {
             ) : filteredVehicles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredVehicles.map((vehicle) => (
-                  <div key={vehicle.id} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl hover:shadow-2xl transition-all duration-300 hover:border-gold-400/50 hover:translate-y-[-4px] group">
-                    <div 
-                      className="h-48 bg-cover bg-center rounded-xl mb-4 relative"
-                      style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
-                    >
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300 rounded-xl"></div>
-                      <div className="absolute bottom-3 left-3">
-                        <span className="bg-gold-500/90 text-slate-900 text-xs font-semibold px-2 py-1 rounded">
-                          📍 {vehicle.city}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-start mb-3">
-                      <h4 className="text-lg font-semibold text-white group-hover:text-gold-300 transition-colors">{vehicle.name}</h4>
-                      <span className="flex items-center bg-gold-500/20 text-gold-300 px-2 py-1 rounded text-sm border border-gold-400/30">
-                        ⭐ {vehicle.rating}
-                      </span>
-                    </div>
-                    
-                    <p className="text-gold-400 font-semibold text-lg mb-3">{vehicle.price}</p>
-                    
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {vehicle.features.map((feature, index) => (
-                        <span 
-                          key={index}
-                          className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                    
-                    <button 
-                      onClick={() => handleBookNow(vehicle)}
-                      className="w-full bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
-                    >
-                      Book Now
-                    </button>
-                  </div>
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
                 ))}
               </div>
             ) : selectedCity && selectedCity !== "All Cities" ? (

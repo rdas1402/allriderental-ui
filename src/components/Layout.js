@@ -22,6 +22,11 @@ const Layout = ({ children }) => {
     { name: "Partner with us", id: "partner", path: "/partner" },
   ];
 
+  // Add admin menu items if user is admin
+  const adminMenuItems = [
+    { name: "🚗 Admin Dashboard", id: "admin", path: "/profile" }
+  ];
+
   // Check login status on component mount and route changes
   useEffect(() => {
     checkLoginStatus();
@@ -49,8 +54,34 @@ const Layout = ({ children }) => {
 
   const getActiveSection = () => {
     const currentPath = location.pathname;
-    const item = menuItems.find(item => item.path === currentPath);
-    return item ? item.id : "home";
+    
+    // Special case for home - should only be active on exact "/"
+    if (currentPath === "/") {
+      return "home";
+    }
+    
+    // Check for exact matches first
+    const exactMatch = menuItems.find(item => item.path === currentPath);
+    if (exactMatch) {
+      return exactMatch.id;
+    }
+    
+    // Check for path starts with (for nested routes)
+    const startsWithMatch = menuItems.find(item => 
+      item.path !== "/" && currentPath.startsWith(item.path)
+    );
+    
+    if (startsWithMatch) {
+      return startsWithMatch.id;
+    }
+    
+    // For admin dashboard on profile page
+    if (currentPath === "/profile" && isLoggedIn && userInfo && (userInfo.role === 'admin' || userInfo.isAdmin)) {
+      return "admin";
+    }
+    
+    // Default to no active item instead of "home"
+    return null;
   };
 
   const handleProfileClick = () => {
@@ -124,7 +155,7 @@ const Layout = ({ children }) => {
 
         {/* Right Section - Menu */}
         <ul className="flex space-x-8 text-md font-medium items-center">
-          {menuItems.map((item) => (
+        {menuItems.map((item) => (
             <li
               key={item.id}
               onClick={() => navigate(item.path)}
@@ -138,6 +169,26 @@ const Layout = ({ children }) => {
               )}
             </li>
           ))}
+
+          {/* Admin Navigation Items - also update this section */}
+          {isLoggedIn && userInfo && (userInfo.role === 'admin' || userInfo.isAdmin) && (
+            <>
+              {adminMenuItems.map((item) => (
+                <li
+                  key={item.id}
+                  onClick={() => navigate(item.path, { state: { scrollToAdmin: true } })}
+                  className={`relative cursor-pointer transition-all duration-300 hover:text-gold-300 ${
+                    getActiveSection() === item.id ? "text-gold-400" : "text-white/90"
+                  }`}
+                >
+                  {item.name}
+                  {getActiveSection() === item.id && (
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gold-400 rounded-full"></span>
+                  )}
+                </li>
+              ))}
+            </>
+          )}
           
           {/* Profile Section */}
           <li className="relative profile-dropdown">

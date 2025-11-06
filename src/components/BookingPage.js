@@ -23,6 +23,8 @@ const BookingPage = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState("");
   const [blockedDates, setBlockedDates] = useState([]);
+  const [isVehicleAvailable, setIsVehicleAvailable] = useState(true);
+  const [unavailablePeriods, setUnavailablePeriods] = useState([]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -72,48 +74,60 @@ const BookingPage = () => {
       return;
     }
 
-    // Fetch existing bookings for this vehicle in real-time
-    fetchExistingBookings();
+    // Fetch comprehensive vehicle availability data
+    fetchVehicleAvailabilityData();
   }, [navigate, vehicle]);
 
-  // Function to fetch existing bookings for the vehicle from API
-  const fetchExistingBookings = async () => {
+  // Function to fetch comprehensive vehicle availability data
+  const fetchVehicleAvailabilityData = async () => {
     try {
       setIsFetchingBookings(true);
-      console.log("Fetching existing bookings for vehicle:", vehicle.id);
+      console.log("Fetching comprehensive vehicle availability for vehicle:", vehicle.id);
       
-      let existingBookings = [];
-      
-      // Fetch from API only - no localStorage
-      // Convert vehicle.id to number if it's a string
       const vehicleId = parseInt(vehicle.id);
-      console.log("Converted vehicle ID:", vehicleId, "Type:", typeof vehicleId);
       
-      const response = await bookingsAPI.getBookingsByVehicle(vehicleId);
-      console.log("API Response for bookings:", response);
+      // Use the enhanced endpoint that includes both bookings and unavailable dates
+      const response = await bookingsAPI.getVehicleBookingAndAvailability(vehicleId);
+      console.log("Comprehensive vehicle availability API Response:", response);
       
-      // UPDATED: Handle the new response structure with response.data
-      if (response && response.success && Array.isArray(response.data)) {
-        // Filter only confirmed bookings for date blocking
-        existingBookings = response.data.filter(booking => 
-          booking.status === 'confirmed' || booking.status === 'Confirmed'
-        );
-        console.log("Confirmed bookings from API:", existingBookings);
+      if (response && response.success && response.data) {
+        const { bookings, unavailableDates, unavailablePeriods, isVehicleGenerallyAvailable } = response.data;
+        
+        console.log("Confirmed bookings:", bookings);
+        console.log("Unavailable dates:", unavailableDates);
+        console.log("Unavailable periods:", unavailablePeriods);
+        console.log("Is vehicle generally available:", isVehicleGenerallyAvailable);
+        
+        // Extract blocked dates from bookings
+        const bookingBlockedRanges = extractBlockedDates(bookings);
+        
+        // Extract blocked dates from unavailable periods
+        const unavailableRanges = unavailablePeriods.map(period => ({
+          start: new Date(period.startDate),
+          end: new Date(period.endDate),
+          reason: period.reason || 'Manually blocked'
+        }));
+        
+        const allBlockedRanges = [...bookingBlockedRanges, ...unavailableRanges];
+        setBlockedDates(allBlockedRanges);
+        setUnavailablePeriods(unavailablePeriods);
+        setIsVehicleAvailable(isVehicleGenerallyAvailable);
+        
+        console.log("All blocked date ranges:", allBlockedRanges);
+        
       } else {
-        console.log("No bookings found or API error");
+        console.log("No availability data found or API error");
+        setBlockedDates([]);
+        setUnavailablePeriods([]);
+        setIsVehicleAvailable(true);
       }
       
-      // Extract and set blocked dates
-      const blockedDateRanges = extractBlockedDates(existingBookings);
-      setBlockedDates(blockedDateRanges);
-      console.log("Blocked date ranges:", blockedDateRanges);
-      console.log("Number of blocked date ranges:", blockedDateRanges.length);
-      
     } catch (error) {
-      console.error("Error fetching existing bookings from API:", error);
-      // If API fails, set empty blocked dates (don't block anything)
+      console.error("Error fetching vehicle availability data:", error);
       setBlockedDates([]);
-      setError("Unable to check date availability. Please try again.");
+      setUnavailablePeriods([]);
+      setIsVehicleAvailable(true);
+      setError("Unable to check vehicle availability. Please try again.");
     } finally {
       setIsFetchingBookings(false);
     }
@@ -131,7 +145,8 @@ const BookingPage = () => {
         
         blockedRanges.push({
           start: startDate,
-          end: endDate
+          end: endDate,
+          reason: 'Already booked'
         });
         
         console.log(`Blocking dates from ${startDate.toDateString()} to ${endDate.toDateString()}`);
@@ -169,7 +184,7 @@ const BookingPage = () => {
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
     
-    // Check each day in the selected range
+    // Check each day in the selected range against all blocked ranges
     for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
       if (isDateBlocked(date)) {
         console.log(`Date conflict found: ${date.toDateString()}`);
@@ -178,6 +193,28 @@ const BookingPage = () => {
     }
     
     return true;
+  };
+
+  // Get reason for why a date range is blocked
+  const getBlockedReason = (startDate, endDate) => {
+    if (!startDate || !endDate) return '';
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+      const blockedRange = blockedDates.find(range => {
+        const rangeStart = new Date(range.start);
+        const rangeEnd = new Date(range.end);
+        return date >= rangeStart && date <= rangeEnd;
+      });
+      
+      if (blockedRange) {
+        return blockedRange.reason || 'Vehicle unavailable';
+      }
+    }
+    
+    return 'Vehicle unavailable';
   };
 
   const calculateTotal = () => {
@@ -215,6 +252,19 @@ const BookingPage = () => {
     }));
   };
 
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Update the booking data
+    setBookingData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear any previous errors
+    setError("");
+  };
+
   const validateBooking = () => {
     if (!bookingData.startDate) {
       setError("Please select pickup date");
@@ -241,7 +291,8 @@ const BookingPage = () => {
     
     // Check if selected dates are available
     if (!isDateRangeAvailable(bookingData.startDate, bookingData.endDate)) {
-      setError("Selected dates are not available. This vehicle is already booked for some of the selected dates.");
+      const reason = getBlockedReason(bookingData.startDate, bookingData.endDate);
+      setError(`Selected dates are not available. ${reason}.`);
       return false;
     }
     
@@ -255,27 +306,7 @@ const BookingPage = () => {
     }
   };
 
-  // Refresh availability when dates are selected
-  const handleDateChange = async (e) => {
-    const { name, value } = e.target;
-    
-    // Update the booking data
-    setBookingData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear any previous errors
-    setError("");
-    
-    // If we're changing dates and have both dates selected, refresh availability
-    if ((name === 'startDate' && value && bookingData.endDate) || 
-        (name === 'endDate' && value && bookingData.startDate)) {
-      await fetchExistingBookings();
-    }
-  };
-
-  // Fixed: Properly handle localStorage data format (EXISTING LOGIC - UNCHANGED)
+  // Handle localStorage data format
   const storeBookingInLocalStorage = (booking) => {
     try {
       // Get existing bookings from localStorage - handle different formats
@@ -334,7 +365,7 @@ const BookingPage = () => {
     }
   };
 
-  // Fixed: Handle API response and localStorage update properly (EXISTING LOGIC - UNCHANGED)
+  // Handle API response and localStorage update
   const handleConfirmBooking = async () => {
     setIsLoading(true);
     setError("");
@@ -461,16 +492,16 @@ const BookingPage = () => {
                 <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-6">
                   <div className="flex items-center justify-center text-blue-200">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400 mr-3"></div>
-                    <span>Checking date availability...</span>
+                    <span>Checking vehicle availability...</span>
                   </div>
                 </div>
               )}
 
-              {/* Availability Notice - Only show if there are blocked dates */}
+              {/* Availability Notice - Show if there are blocked dates */}
               {!isFetchingBookings && blockedDates.length > 0 && (
                 <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-6">
                   <p className="text-blue-200 text-center text-sm">
-                    📅 Some dates are already booked. Please check availability before proceeding.
+                    📅 Some dates are blocked due to existing bookings or manual unavailability.
                   </p>
                 </div>
               )}
@@ -529,22 +560,35 @@ const BookingPage = () => {
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Pickup Time
                   </label>
-                  <select
-                    name="pickupTime"
-                    value={bookingData.pickupTime}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
-                    disabled={isFetchingBookings}
-                  >
-                    {Array.from({ length: 13 }, (_, i) => {
-                      const hour = i + 8; // 8 AM to 8 PM
-                      return (
-                        <option key={hour} value={`${hour}:00`}>
-                          {hour}:00 {hour < 12 ? 'AM' : 'PM'}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="pickupTime"
+                      value={bookingData.pickupTime}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm appearance-none cursor-pointer"
+                      disabled={isFetchingBookings}
+                    >
+                      {Array.from({ length: 13 }, (_, i) => {
+                        const hour = i + 8; // 8 AM to 8 PM
+                        const timeString = `${hour}:00`;
+                        const displayTime = `${hour}:00 ${hour < 12 ? 'AM' : hour === 12 ? 'PM' : 'PM'}`;
+                        return (
+                          <option key={hour} value={timeString} className="text-slate-900 bg-white">
+                            {displayTime}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {/* Custom dropdown arrow */}
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-gold-400 text-xs mt-2 font-medium text-center bg-gold-400/20 py-1 rounded-lg">
+                    🕒 {bookingData.pickupTime} {parseInt(bookingData.pickupTime) < 12 ? 'AM' : 'PM'}
+                  </p>
                 </div>
 
                 {/* Dropoff Time */}
@@ -552,22 +596,35 @@ const BookingPage = () => {
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Dropoff Time
                   </label>
-                  <select
-                    name="dropoffTime"
-                    value={bookingData.dropoffTime}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
-                    disabled={isFetchingBookings}
-                  >
-                    {Array.from({ length: 13 }, (_, i) => {
-                      const hour = i + 8;
-                      return (
-                        <option key={hour} value={`${hour}:00`}>
-                          {hour}:00 {hour < 12 ? 'AM' : 'PM'}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="dropoffTime"
+                      value={bookingData.dropoffTime}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm appearance-none cursor-pointer"
+                      disabled={isFetchingBookings}
+                    >
+                      {Array.from({ length: 13 }, (_, i) => {
+                        const hour = i + 8;
+                        const timeString = `${hour}:00`;
+                        const displayTime = `${hour}:00 ${hour < 12 ? 'AM' : hour === 12 ? 'PM' : 'PM'}`;
+                        return (
+                          <option key={hour} value={timeString} className="text-slate-900 bg-white">
+                            {displayTime}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {/* Custom dropdown arrow */}
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-gold-400 text-xs mt-2 font-medium text-center bg-gold-400/20 py-1 rounded-lg">
+                    🕒 {bookingData.dropoffTime} {parseInt(bookingData.dropoffTime) < 12 ? 'AM' : 'PM'}
+                  </p>
                 </div>
 
                 {/* Pickup Location */}
@@ -646,10 +703,17 @@ const BookingPage = () => {
 
               <button
                 onClick={handleProceedToBook}
-                disabled={isFetchingBookings || isLoading}
-                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-500/50 text-slate-900 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg disabled:cursor-not-allowed"
+                disabled={isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)}
+                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg ${
+                  isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)
+                    ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
+                    : 'bg-gold-500 hover:bg-gold-600 text-slate-900 hover:scale-105'
+                }`}
               >
-                {isFetchingBookings ? "Checking Availability..." : "Proceed to Book"}
+                {isFetchingBookings ? "Checking Availability..." : 
+                 isLoading ? "Processing..." :
+                 !isDateRangeAvailable(bookingData.startDate, bookingData.endDate) ? "Vehicle Unavailable for Selected Dates" : 
+                 "Proceed to Book"}
               </button>
             </div>
           </div>
@@ -720,7 +784,7 @@ const BookingPage = () => {
                 <span className="text-gold-400 font-bold text-xl">₹{totalAmount.toLocaleString()}</span>
               </div>
 
-              {/* Availability Status - Only show when dates are selected */}
+              {/* Availability Status */}
               {bookingData.startDate && bookingData.endDate && (
                 <div className={`mt-4 p-3 rounded-lg text-sm ${
                   isDateRangeAvailable(bookingData.startDate, bookingData.endDate) 
@@ -735,8 +799,26 @@ const BookingPage = () => {
                   ) : isDateRangeAvailable(bookingData.startDate, bookingData.endDate) ? (
                     '✅ Selected dates are available'
                   ) : (
-                    '❌ Selected dates conflict with existing bookings'
+                    `❌ ${getBlockedReason(bookingData.startDate, bookingData.endDate)}`
                   )}
+                </div>
+              )}
+
+              {/* Unavailable Periods Info */}
+              {unavailablePeriods.length > 0 && (
+                <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+                  <p className="text-yellow-400 text-sm font-semibold mb-2">📅 Unavailable Periods:</p>
+                  <div className="space-y-1 text-yellow-300 text-xs">
+                    {unavailablePeriods.slice(0, 3).map((period, index) => (
+                      <div key={index}>
+                        {new Date(period.startDate).toLocaleDateString()} - {new Date(period.endDate).toLocaleDateString()}
+                        {period.reason && ` (${period.reason})`}
+                      </div>
+                    ))}
+                    {unavailablePeriods.length > 3 && (
+                      <div>+ {unavailablePeriods.length - 3} more periods</div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

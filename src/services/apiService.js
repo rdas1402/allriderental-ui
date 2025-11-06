@@ -64,9 +64,9 @@ export const bookingsAPI = {
   getBookingsByCustomer: (phone) => apiRequest(`/bookings/customer/${phone}`),
   
   // UPDATED: Get bookings by vehicle ID for date blocking
-  getBookingsByVehicle: async (vehicleId) => {
+  getVehicleBookingAndAvailability: async (vehicleId) => {
     try {
-      const response = await apiRequest(`/bookings/vehicle/${vehicleId}`);
+      const response = await apiRequest(`/bookings/vehicle/${vehicleId}/availability`);
       console.log("Bookings by vehicle API response:", response);
       return response;
     } catch (error) {
@@ -74,7 +74,13 @@ export const bookingsAPI = {
       // Return fallback structure
       return {
         success: true,
-        data: [],
+        data: {
+          bookings: [],
+          unavailableDates: [],
+          availablePeriods: [],
+          unavailablePeriods: [],
+          isVehicleGenerallyAvailable: true
+        },
         message: 'Using fallback data due to API error'
       };
     }
@@ -135,7 +141,7 @@ export const authAPI = {
     return apiRequest(`/auth/check-user/${phoneNumber}`);
   },
 
-  // Get user profile
+  // Get user profile (now handles both admin and regular users)
   getUserProfile: async (phoneNumber) => {
     return apiRequest(`/auth/profile/${phoneNumber}`);
   },
@@ -165,6 +171,131 @@ export const authAPI = {
   getUserProfileWithBookings: async (phoneNumber) => {
     return apiRequest(`/auth/profile/${phoneNumber}`);
   },
+
+  // Admin profile endpoint (if needed separately)
+  getAdminProfile: async (phoneNumber) => {
+    return apiRequest(`/auth/profile/${phoneNumber}`); // Same endpoint now handles both
+  },
+};
+
+// Admin API - Complete and organized
+export const adminAPI = {
+  // Admin authentication and role check
+  checkAdminRole: (phone) => apiRequest(`/admin/check-role/${phone}`),
+  
+  // Booking management with pagination support
+  getAllBookings: (page = 0, size = 50) => 
+    apiRequest(`/admin/bookings?page=${page}&size=${size}`),
+  
+  getCompletedBookings: (page = 0, size = 50) => 
+    apiRequest(`/admin/bookings/completed?page=${page}&size=${size}`),
+  
+  getUpcomingBookings: (page = 0, size = 50) => 
+    apiRequest(`/admin/bookings/upcoming?page=${page}&size=${size}`),
+  
+  updateBooking: (bookingId, updateData) =>
+    apiRequest(`/admin/bookings/${bookingId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    }),
+  
+  cancelBooking: (bookingId) =>
+    apiRequest(`/admin/bookings/${bookingId}/cancel`, {
+      method: 'PUT',
+    }),
+
+  // Vehicle availability management
+  setVehicleAvailability: (vehicleId, availabilityData) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/availability`, {
+      method: 'POST',
+      body: JSON.stringify(availabilityData),
+    }),
+  
+  getVehicleAvailability: (vehicleId) => 
+    apiRequest(`/admin/vehicles/${vehicleId}/availability`),
+  
+  deleteVehicleAvailability: (availabilityId) =>
+    apiRequest(`/admin/availability/${availabilityId}`, {
+      method: 'DELETE',
+    }),
+  
+  // New endpoints for enhanced availability management
+  setVehicleUnavailable: (vehicleId, requestData) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/unavailable`, {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    }),
+  
+  setVehicleAvailable: (vehicleId, requestData) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/available`, {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    }),
+  
+  getAvailabilityStatus: (vehicleId, startDate, endDate) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/availability-status?startDate=${startDate}&endDate=${endDate}`),
+  
+  removeUnavailablePeriod: (availabilityId) =>
+    apiRequest(`/admin/availability/${availabilityId}`, {
+      method: 'DELETE',
+    }),
+  
+  // Admin statistics
+  getAdminStats: () => apiRequest('/admin/stats'),
+
+  // User management (if needed in future)
+  getAllUsers: (page = 0, size = 50) =>
+    apiRequest(`/admin/users?page=${page}&size=${size}`),
+
+  getUserDetails: (userId) =>
+    apiRequest(`/admin/users/${userId}`),
+
+  // Vehicle management (if needed in future)
+  createVehicle: (vehicleData) =>
+    apiRequest('/admin/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(vehicleData),
+    }),
+
+  updateVehicle: (vehicleId, vehicleData) =>
+    apiRequest(`/admin/vehicles/${vehicleId}`, {
+      method: 'PUT',
+      body: JSON.stringify(vehicleData),
+    }),
+
+  deleteVehicle: (vehicleId) =>
+    apiRequest(`/admin/vehicles/${vehicleId}`, {
+      method: 'DELETE',
+    }),
+
+  clearConflictingAvailability: (vehicleId) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/availability/clear-conflicts`, {
+        method: 'DELETE',
+    }),
+};
+
+// Vehicle Availability API (for the VehicleAvailabilityManager component)
+export const vehicleAvailabilityAPI = {
+  getAvailability: (vehicleId) => 
+    apiRequest(`/admin/vehicles/${vehicleId}/availability`),
+  
+  setAvailability: (vehicleId, availabilityData) =>
+    apiRequest(`/admin/vehicles/${vehicleId}/availability`, {
+      method: 'POST',
+      body: JSON.stringify(availabilityData),
+    }),
+  
+  deleteAvailability: (availabilityId) =>
+    apiRequest(`/admin/availability/${availabilityId}`, {
+      method: 'DELETE',
+    }),
+};
+
+// Statistics API (for the AdminStatsDashboard component)
+export const statsAPI = {
+  getAdminStats: () => apiRequest('/admin/stats'),
+  getBookingStats: () => apiRequest('/bookings/stats'),
+  getVehicleStats: () => apiRequest('/vehicles/counts'),
 };
 
 export default apiRequest;
