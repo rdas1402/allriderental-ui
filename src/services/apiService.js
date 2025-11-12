@@ -201,6 +201,9 @@ export const adminAPI = {
   
   getUpcomingBookings: (page = 0, size = 50) => 
     apiRequest(`/admin/bookings/upcoming?page=${page}&size=${size}`),
+
+  getCancelledBookings: (page = 0, size = 50) =>
+  apiRequest(`/admin/bookings/cancelled?page=${page}&size=${size}`),
   
   updateBooking: (bookingId, updateData) =>
     apiRequest(`/admin/bookings/${bookingId}`, {
@@ -324,6 +327,94 @@ export const statsAPI = {
   getAdminStats: () => apiRequest('/admin/stats'),
   getBookingStats: () => apiRequest('/bookings/stats'),
   getVehicleStats: () => apiRequest('/vehicles/counts'),
+};
+
+// Payment API
+export const paymentAPI = {
+  createOrder: (orderData) =>
+    apiRequest('/payment/create-order', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    }),
+
+  // verifyPayment: (paymentData) =>
+  //   apiRequest('/payment/verify-payment', {
+  //     method: 'POST',
+  //     body: JSON.stringify(paymentData),
+  //   }),
+
+  getTransaction: (bookingId) =>
+    apiRequest(`/payment/transaction/${bookingId}`),
+
+  sendBookingNotifications: (bookingId) =>
+    apiRequest(`/payment/send-booking-notifications/${bookingId}`, {
+      method: 'POST',
+    }),
+
+  testNotifications: (testData) =>
+    apiRequest('/payment/test-notifications', {
+      method: 'POST',
+      body: JSON.stringify(testData),
+    }),
+
+  processBookingPayment: (paymentData) =>
+    apiRequest('/payment/process-booking-payment', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    }),
+
+  mockPaymentSuccess: (paymentData) =>
+    apiRequest('/payment/mock-payment-success', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    }),
+
+  getPaymentStatus: (bookingId) =>
+    apiRequest(`/payment/booking/${bookingId}`),
+};
+
+// Notification API
+export const notificationAPI = {
+  // Send booking confirmation notifications (email + SMS)
+  sendBookingConfirmation: (notificationData) => 
+    apiRequest('/notifications/send-booking-confirmation', {
+      method: 'POST',
+      body: JSON.stringify(notificationData),
+    }),
+
+  // Send admin notifications
+  sendAdminNotification: (notificationData) =>
+    apiRequest('/notifications/send-admin-notification', {
+      method: 'POST',
+      body: JSON.stringify(notificationData),
+    }),
+
+  // Send booking notifications for specific booking
+  sendBookingNotifications: (bookingId) =>
+    apiRequest(`/payment/send-booking-notifications/${bookingId}`, {
+      method: 'POST',
+    }),
+
+  // Test notifications
+  testNotifications: (testData) =>
+    apiRequest('/payment/test-notifications', {
+      method: 'POST',
+      body: JSON.stringify(testData),
+    }),
+
+  // Test email specifically
+  testEmail: (email, testData = {}) =>
+    apiRequest('/notifications/test-email', {
+      method: 'POST',
+      body: JSON.stringify({ email, ...testData }),
+    }),
+
+  // Test SMS specifically
+  testSMS: (phone, testData = {}) =>
+    apiRequest('/notifications/test-sms', {
+      method: 'POST',
+      body: JSON.stringify({ phone, ...testData }),
+    }),
 };
 
 export default apiRequest;

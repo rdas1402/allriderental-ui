@@ -27,29 +27,29 @@ const AdminStatsDashboard = () => {
 
   const handleNavigation = (path) => {
     const basename = process.env.REACT_APP_BASENAME || '';
-    navigate(`${basename}${path}`);
+    navigate(`${path}`);
   };
 
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-400 mx-auto mb-4"></div>
-        <p className="text-white/70">Loading statistics...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-500 mx-auto mb-4"></div>
+        <p className="text-slate-600">Loading statistics...</p>
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="text-center py-8 bg-white/5 rounded-xl border border-white/10">
-        <p className="text-white/70">Unable to load statistics</p>
+      <div className="text-center py-8 bg-blue-50 rounded-xl border border-blue-200">
+        <p className="text-slate-600">Unable to load statistics</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-white mb-4">Dashboard Overview</h3>
+      <h3 className="text-xl font-semibold text-slate-800 mb-4">Dashboard Overview</h3>
       
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -122,18 +122,18 @@ const AdminStatsDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-        <h4 className="text-white font-semibold mb-4">Quick Actions</h4>
+      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+        <h4 className="text-slate-800 font-semibold mb-4">Quick Actions</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button 
             onClick={() => handleNavigation('/rent')}
-            className="bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+            className="bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
           >
             View All Vehicles
           </button>
           <button 
             onClick={() => handleNavigation('/booking')}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
           >
             Create Test Booking
           </button>
@@ -145,16 +145,16 @@ const AdminStatsDashboard = () => {
 
 const StatCard = ({ title, value, color, icon }) => {
   const colorClasses = {
-    blue: 'bg-blue-500/20 border-blue-500/30 text-blue-300',
-    green: 'bg-green-500/20 border-green-500/30 text-green-300',
-    red: 'bg-red-500/20 border-red-500/30 text-red-300',
-    gold: 'bg-gold-500/20 border-gold-500/30 text-gold-300',
-    yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300',
-    purple: 'bg-purple-500/20 border-purple-500/30 text-purple-300'
+    blue: 'bg-blue-50 border-blue-200 text-blue-700',
+    green: 'bg-green-50 border-green-200 text-green-700',
+    red: 'bg-red-50 border-red-200 text-red-700',
+    gold: 'bg-gold-50 border-gold-200 text-gold-700',
+    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+    purple: 'bg-purple-50 border-purple-200 text-purple-700'
   };
 
   return (
-    <div className={`rounded-xl p-4 border ${colorClasses[color]}`}>
+    <div className={`rounded-xl p-4 border ${colorClasses[color]} shadow-lg`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-2xl font-bold">{value}</p>

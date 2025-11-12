@@ -23,7 +23,7 @@ const Layout = ({ children }) => {
   ];
 
   const adminMenuItems = [
-    { name: "🚗 Admin Dashboard", id: "admin", path: "/admin" } // Changed from "/profile" to "/admin"
+    { name: "🚗 Admin Dashboard", id: "admin", path: "/admin" }
   ];
 
   // Check login status on component mount and route changes
@@ -139,9 +139,9 @@ const Layout = ({ children }) => {
   }, [showDropdown]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex flex-col">
-      {/* Navigation Header */}
-      <nav className="bg-black/30 backdrop-blur-lg text-white flex justify-between items-center px-10 py-5 sticky top-0 z-50 border-b border-white/10">
+    <div className="min-h-screen bg-white flex flex-col"> {/* Changed to white background */}
+      {/* Navigation Header - Lighter Blue */}
+      <nav className="bg-blue-100 backdrop-blur-lg text-slate-800 flex justify-between items-center px-10 py-5 sticky top-0 z-50 border-b border-blue-200 shadow-sm"> {/* Changed to lighter blue */}
         {/* Left Section - Logo + App Name */}
         <div
           className="flex items-center space-x-3 cursor-pointer group"
@@ -152,42 +152,42 @@ const Layout = ({ children }) => {
             alt="All Ride Rental"
             className="w-12 h-12 rounded-full border-2 border-gold-400 group-hover:scale-105 transition-transform duration-300"
           />
-          <h1 className="text-2xl font-light text-white tracking-wide">
-            All Ride <span className="font-semibold text-gold-400">Rental</span>
+          <h1 className="text-2xl font-light text-slate-800 tracking-wide"> {/* Changed text color */}
+            All Ride <span className="font-semibold text-gold-500">Rental</span> {/* Changed gold color */}
           </h1>
         </div>
 
         {/* Right Section - Menu */}
         <ul className="flex space-x-8 text-md font-medium items-center">
-        {menuItems.map((item) => (
+          {menuItems.map((item) => (
             <li
               key={item.id}
               onClick={() => navigate(item.path)}
-              className={`relative cursor-pointer transition-all duration-300 hover:text-gold-300 ${
-                getActiveSection() === item.id ? "text-gold-400" : "text-white/90"
+              className={`relative cursor-pointer transition-all duration-300 hover:text-gold-500 ${
+                getActiveSection() === item.id ? "text-gold-500" : "text-slate-700" // Changed text colors
               }`}
             >
               {item.name}
               {getActiveSection() === item.id && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gold-400 rounded-full"></span>
+                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gold-500 rounded-full"></span> 
               )}
             </li>
           ))}
 
-          {/* Admin Navigation Items - also update this section */}
+          {/* Admin Navigation Items */}
           {isLoggedIn && userInfo && (userInfo.role === 'admin' || userInfo.isAdmin) && (
             <>
               {adminMenuItems.map((item) => (
                 <li
                   key={item.id}
                   onClick={() => navigate(item.path, { state: { scrollToAdmin: true } })}
-                  className={`relative cursor-pointer transition-all duration-300 hover:text-gold-300 ${
-                    getActiveSection() === item.id ? "text-gold-400" : "text-white/90"
+                  className={`relative cursor-pointer transition-all duration-300 hover:text-gold-500 ${
+                    getActiveSection() === item.id ? "text-gold-500" : "text-slate-700" // Changed text colors
                   }`}
                 >
                   {item.name}
                   {getActiveSection() === item.id && (
-                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gold-400 rounded-full"></span>
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gold-500 rounded-full"></span>
                   )}
                 </li>
               ))}
@@ -197,45 +197,45 @@ const Layout = ({ children }) => {
           {/* Profile Section */}
           <li className="relative profile-dropdown">
             <div 
-              className="flex items-center cursor-pointer hover:text-gold-300 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-white/5"
+              className="flex items-center cursor-pointer hover:text-gold-500 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-blue-200" // Changed hover background
               onClick={handleProfileClick}
             >
               <FaUserCircle
                 size={20}
-                className="mr-2 hover:scale-105 transition-transform duration-300 text-white/90"
+                className="mr-2 hover:scale-105 transition-transform duration-300 text-slate-700" // Changed icon color
               />
-              <span className="text-white/90">
+              <span className="text-slate-700"> {/* Changed text color */}
                 {isLoggedIn ? (userInfo?.name || "My Profile") : "My Profile"}
               </span>
               {isLoggedIn && (
                 <FaChevronDown 
                   size={12} 
-                  className={`ml-2 transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`}
+                  className={`ml-2 transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''} text-slate-600`} // Changed icon color
                 />
               )}
             </div>
 
             {/* Dropdown Menu - Only show when logged in */}
             {isLoggedIn && showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-slate-800/90 backdrop-blur-lg rounded-xl shadow-2xl border border-white/10 py-2 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-blue-50 backdrop-blur-lg rounded-xl shadow-lg border border-blue-200 py-2 z-50"> {/* Changed to lighter blue */}
                 <button
                   onClick={handleViewProfile}
-                  className="w-full text-left px-4 py-3 text-white/90 hover:bg-white/10 hover:text-gold-300 transition-colors flex items-center"
+                  className="w-full text-left px-4 py-3 text-slate-700 hover:bg-blue-100 hover:text-gold-500 transition-colors flex items-center" // Changed colors
                 >
                   <FaUserCircle className="mr-2" size={14} />
                   View Profile
                 </button>
                 <button
                   onClick={handleViewBookings}
-                  className="w-full text-left px-4 py-3 text-white/90 hover:bg-white/10 hover:text-gold-300 transition-colors flex items-center"
+                  className="w-full text-left px-4 py-3 text-slate-700 hover:bg-blue-100 hover:text-gold-500 transition-colors flex items-center" // Changed colors
                 >
                   <span className="mr-2">📋</span>
                   My Bookings
                 </button>
-                <div className="border-t border-white/10 my-1"></div>
+                <div className="border-t border-blue-200 my-1"></div> {/* Changed border color */}
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors flex items-center"
+                  className="w-full text-left px-4 py-3 text-red-500 hover:bg-blue-100 hover:text-red-600 transition-colors flex items-center" // Changed colors
                 >
                   <span className="mr-2">🚪</span>
                   Logout
@@ -246,8 +246,8 @@ const Layout = ({ children }) => {
         </ul>
       </nav>
 
-      {/* Page Content */}
-      <main className="flex-grow">
+      {/* Page Content - White Background */}
+      <main className="flex-grow bg-white"> {/* Added white background */}
         {children}
       </main>
 

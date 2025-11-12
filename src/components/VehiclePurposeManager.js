@@ -128,10 +128,10 @@ const VehiclePurposeManager = () => {
   // Get purpose badge color
   const getPurposeBadgeColor = (purpose) => {
     switch (purpose) {
-      case 'rent': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'sale': return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'both': return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      case 'rent': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'sale': return 'bg-green-50 text-green-700 border-green-200';
+      case 'both': return 'bg-purple-50 text-purple-700 border-purple-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -146,14 +146,14 @@ const VehiclePurposeManager = () => {
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-      <h3 className="text-2xl font-semibold text-white mb-6">Vehicle Purpose Management</h3>
+    <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-lg">
+      <h3 className="text-2xl font-semibold text-slate-800 mb-6">Vehicle Purpose Management</h3>
 
       {message && (
         <div className={`mb-4 p-3 rounded-lg text-center ${
           message.includes("✅") 
-            ? "bg-green-500/20 text-green-300 border border-green-500/30" 
-            : "bg-red-500/20 text-red-300 border border-red-500/30"
+            ? "bg-green-50 text-green-700 border border-green-200" 
+            : "bg-red-50 text-red-700 border border-red-200"
         }`}>
           {message}
         </div>
@@ -162,7 +162,7 @@ const VehiclePurposeManager = () => {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-white/80 text-sm font-medium mb-2">
+          <label className="block text-slate-700 text-sm font-medium mb-2">
             Search Vehicles
           </label>
           <input
@@ -170,18 +170,18 @@ const VehiclePurposeManager = () => {
             placeholder="Search by name, city, or type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 bg-white/90 border border-white/20 rounded-lg text-gray-800 placeholder-gray-600 focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+            className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
           />
         </div>
         
         <div>
-          <label className="block text-white/80 text-sm font-medium mb-2">
+          <label className="block text-slate-700 text-sm font-medium mb-2">
             Filter by Purpose
           </label>
           <select
             value={purposeFilter}
             onChange={(e) => setPurposeFilter(e.target.value)}
-            className="w-full px-4 py-2 bg-white/90 border border-white/20 rounded-lg text-gray-800 focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+            className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
           >
             <option value="all">All Purposes</option>
             <option value="rent">Rent Only</option>
@@ -195,14 +195,14 @@ const VehiclePurposeManager = () => {
       <div className="space-y-4">
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-400 mx-auto mb-4"></div>
-            <p className="text-white/70">Loading vehicles...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-500 mx-auto mb-4"></div>
+            <p className="text-slate-600">Loading vehicles...</p>
           </div>
         ) : filteredVehicles.length > 0 ? (
           filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
-              className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-gold-400/30 transition-all duration-300"
+              className="bg-blue-50 rounded-xl p-4 border border-blue-200 hover:border-gold-400 transition-all duration-300"
             >
               <div className="flex flex-col lg:flex-row lg:items-start space-y-4 lg:space-y-0 lg:space-x-6">
                 {/* Vehicle Image */}
@@ -221,10 +221,10 @@ const VehiclePurposeManager = () => {
                 <div className="flex-1">
                   <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4">
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">
+                      <h4 className="text-lg font-semibold text-slate-800 mb-2">
                         {vehicle.name}
                       </h4>
-                      <p className="text-white/60 text-sm">
+                      <p className="text-slate-600 text-sm">
                         {vehicle.type} • {vehicle.city}
                       </p>
                       <div className="flex items-center space-x-2 mt-2">
@@ -232,10 +232,10 @@ const VehiclePurposeManager = () => {
                           {getPurposeDisplayName(vehicle.purpose)}
                         </span>
                         {vehicle.purpose !== 'sale' && vehicle.rentPrice && (
-                          <span className="text-gold-400 text-sm">{vehicle.rentPrice || vehicle.price}</span>
+                          <span className="text-gold-500 text-sm">{vehicle.rentPrice || vehicle.price}</span>
                         )}
                         {vehicle.purpose !== 'rent' && vehicle.salePrice && (
-                          <span className="text-green-400 text-sm">{vehicle.salePrice}</span>
+                          <span className="text-green-500 text-sm">{vehicle.salePrice}</span>
                         )}
                       </div>
                     </div>
@@ -248,7 +248,7 @@ const VehiclePurposeManager = () => {
                             <select
                               value={newPurpose}
                               onChange={(e) => setNewPurpose(e.target.value)}
-                              className="px-4 py-2 bg-slate-800 border border-white/20 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-400 focus:border-gold-400 transition-colors"
+                              className="px-4 py-2 bg-white border border-blue-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors"
                               disabled={optionsLoading || purposeOptions.length === 0}
                             >
                               {optionsLoading ? (
@@ -257,7 +257,7 @@ const VehiclePurposeManager = () => {
                                 <option value="">No options available</option>
                               ) : (
                                 purposeOptions.map(option => (
-                                  <option key={option.value} value={option.value} className="bg-slate-800 text-white py-2">
+                                  <option key={option.value} value={option.value} className="bg-white text-slate-800 py-2">
                                     {option.label}
                                   </option>
                                 ))
@@ -282,17 +282,17 @@ const VehiclePurposeManager = () => {
                           
                           {/* Purpose Options Info */}
                           {!optionsLoading && purposeOptions.length > 0 && (
-                            <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                              <h5 className="text-white font-semibold mb-2">Available Purpose Options:</h5>
+                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                              <h5 className="text-slate-800 font-semibold mb-2">Available Purpose Options:</h5>
                               <div className="space-y-2">
                                 {purposeOptions.map(option => (
                                   <div key={option.value} className="flex items-center space-x-3">
                                     <div className={`w-3 h-3 rounded-full ${
-                                      newPurpose === option.value ? 'bg-gold-400' : 'bg-white/20'
+                                      newPurpose === option.value ? 'bg-gold-500' : 'bg-blue-200'
                                     }`}></div>
                                     <div>
-                                      <p className="text-white font-medium">{option.label}</p>
-                                      <p className="text-white/60 text-sm">{option.description}</p>
+                                      <p className="text-slate-800 font-medium">{option.label}</p>
+                                      <p className="text-slate-600 text-sm">{option.description}</p>
                                     </div>
                                   </div>
                                 ))}
@@ -316,10 +316,10 @@ const VehiclePurposeManager = () => {
             </div>
           ))
         ) : (
-          <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
-            <div className="text-6xl mb-4 text-white/40">🚗</div>
-            <p className="text-white/70 text-lg mb-2">No vehicles found</p>
-            <p className="text-white/50 text-sm">
+          <div className="text-center py-12 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="text-6xl mb-4 text-slate-400">🚗</div>
+            <p className="text-slate-600 text-lg mb-2">No vehicles found</p>
+            <p className="text-slate-500 text-sm">
               {searchTerm || purposeFilter !== 'all' 
                 ? 'Try adjusting your search or filter criteria' 
                 : 'No vehicles available in the system'
@@ -331,23 +331,23 @@ const VehiclePurposeManager = () => {
 
       {/* Statistics */}
       <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-        <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-          <p className="text-blue-300 font-semibold text-2xl">
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <p className="text-blue-700 font-semibold text-2xl">
             {vehicles.filter(v => v.purpose === 'rent').length}
           </p>
-          <p className="text-blue-300 text-sm">Rent Only</p>
+          <p className="text-blue-700 text-sm">Rent Only</p>
         </div>
-        <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30">
-          <p className="text-green-300 font-semibold text-2xl">
+        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <p className="text-green-700 font-semibold text-2xl">
             {vehicles.filter(v => v.purpose === 'sale').length}
           </p>
-          <p className="text-green-300 text-sm">Sale Only</p>
+          <p className="text-green-700 text-sm">Sale Only</p>
         </div>
-        <div className="bg-purple-500/20 rounded-lg p-4 border border-purple-500/30">
-          <p className="text-purple-300 font-semibold text-2xl">
+        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+          <p className="text-purple-700 font-semibold text-2xl">
             {vehicles.filter(v => v.purpose === 'both').length}
           </p>
-          <p className="text-purple-300 text-sm">Dual Purpose</p>
+          <p className="text-purple-700 text-sm">Dual Purpose</p>
         </div>
       </div>
     </div>

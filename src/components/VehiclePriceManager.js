@@ -179,24 +179,24 @@ const VehiclePriceManager = () => {
   // Get purpose badge color
   const getPurposeBadgeColor = (purpose) => {
     switch (purpose) {
-      case 'rent': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'sale': return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'both': return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      case 'rent': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'sale': return 'bg-green-50 text-green-700 border-green-200';
+      case 'both': return 'bg-purple-50 text-purple-700 border-purple-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-      <h3 className="text-2xl font-semibold text-white mb-6">Vehicle Price Management</h3>
+    <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-lg">
+      <h3 className="text-2xl font-semibold text-slate-800 mb-6">Vehicle Price Management</h3>
 
       {message && (
         <div className={`mb-4 p-3 rounded-lg text-center ${
           message.includes("✅") || message.includes("💡")
             ? message.includes("✅") 
-              ? "bg-green-500/20 text-green-300 border border-green-500/30"
-              : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-            : "bg-red-500/20 text-red-300 border border-red-500/30"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-blue-50 text-blue-700 border border-blue-200"
+            : "bg-red-50 text-red-700 border border-red-200"
         }`}>
           {message}
         </div>
@@ -205,8 +205,8 @@ const VehiclePriceManager = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Panel - Vehicle List */}
         <div className="space-y-4">
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <h4 className="text-lg font-semibold text-white mb-4">Select Vehicle</h4>
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <h4 className="text-lg font-semibold text-slate-800 mb-4">Select Vehicle</h4>
             
             {/* Search Box */}
             <div className="mb-4">
@@ -215,7 +215,7 @@ const VehiclePriceManager = () => {
                 placeholder="Search vehicles by name, city, or type..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+                className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
               />
             </div>
 
@@ -227,28 +227,28 @@ const VehiclePriceManager = () => {
                   onClick={() => handleVehicleSelect(vehicle)}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     selectedVehicle?.id === vehicle.id
-                      ? "bg-gold-500/20 border-gold-400"
-                      : "bg-white/5 border-white/20 hover:bg-white/10"
+                      ? "bg-gold-50 border-gold-400"
+                      : "bg-white border-blue-200 hover:bg-blue-100"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <h5 className="font-semibold text-white">{vehicle.name}</h5>
+                        <h5 className="font-semibold text-slate-800">{vehicle.name}</h5>
                         <span className={`px-2 py-1 rounded-full text-xs border ${getPurposeBadgeColor(vehicle.purpose)}`}>
                           {vehicle.purpose}
                         </span>
                       </div>
-                      <p className="text-white/60 text-sm">
+                      <p className="text-slate-600 text-sm">
                         {vehicle.type} • {vehicle.city}
                       </p>
                     </div>
                     <div className="text-right text-sm">
                       {vehicle.purpose !== 'sale' && (
-                        <p className="text-gold-400">{vehicle.rentPrice || vehicle.price}</p>
+                        <p className="text-gold-500">{vehicle.rentPrice || vehicle.price}</p>
                       )}
                       {vehicle.purpose !== 'rent' && vehicle.salePrice && (
-                        <p className="text-green-400">{vehicle.salePrice}</p>
+                        <p className="text-green-500">{vehicle.salePrice}</p>
                       )}
                     </div>
                   </div>
@@ -261,20 +261,20 @@ const VehiclePriceManager = () => {
         {/* Right Panel - Price Management */}
         <div className="space-y-4">
           {selectedVehicle ? (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="text-lg font-semibold text-white mb-4">
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <h4 className="text-lg font-semibold text-slate-800 mb-4">
                 Manage Prices - {selectedVehicle.name}
               </h4>
 
               {/* Vehicle Info */}
-              <div className="flex items-center space-x-4 mb-6 p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center space-x-4 mb-6 p-3 bg-white rounded-lg border border-blue-200">
                 <div 
                   className="w-16 h-16 bg-cover bg-center rounded-lg"
                   style={{ backgroundImage: `url(${selectedVehicle.imageUrl})` }}
                 ></div>
                 <div className="flex-1">
-                  <h5 className="text-white font-semibold">{selectedVehicle.name}</h5>
-                  <p className="text-white/60 text-sm">
+                  <h5 className="text-slate-800 font-semibold">{selectedVehicle.name}</h5>
+                  <p className="text-slate-600 text-sm">
                     {selectedVehicle.type} • {selectedVehicle.city}
                   </p>
                   <div className="flex items-center space-x-2 mt-1">
@@ -282,13 +282,13 @@ const VehiclePriceManager = () => {
                       {selectedVehicle.purpose}
                     </span>
                     {selectedVehicle.purpose === 'rent' && (
-                      <span className="text-blue-300 text-xs">(Rent Only)</span>
+                      <span className="text-blue-600 text-xs">(Rent Only)</span>
                     )}
                     {selectedVehicle.purpose === 'sale' && (
-                      <span className="text-green-300 text-xs">(Sale Only)</span>
+                      <span className="text-green-600 text-xs">(Sale Only)</span>
                     )}
                     {selectedVehicle.purpose === 'both' && (
-                      <span className="text-purple-300 text-xs">(Dual Purpose - All tabs enabled)</span>
+                      <span className="text-purple-600 text-xs">(Dual Purpose - All tabs enabled)</span>
                     )}
                   </div>
                 </div>
@@ -296,7 +296,7 @@ const VehiclePriceManager = () => {
 
               {/* Purpose Display Toggle */}
               <div className="mb-6">
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   View/Edit Prices For
                 </label>
                 <div className="flex space-x-2">
@@ -315,8 +315,8 @@ const VehiclePriceManager = () => {
                           isActive
                             ? 'bg-gold-500 text-slate-900'
                             : isEnabled
-                            ? 'bg-white/10 text-white hover:bg-white/20'
-                            : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                            ? 'bg-blue-50 text-slate-700 hover:bg-blue-100 border border-blue-200'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                       >
                         {purpose.charAt(0).toUpperCase() + purpose.slice(1)}
@@ -327,7 +327,7 @@ const VehiclePriceManager = () => {
                     );
                   })}
                 </div>
-                <p className="text-white/60 text-xs mt-2">
+                <p className="text-slate-600 text-xs mt-2">
                   {selectedVehicle.purpose === 'rent' && "This vehicle is set as 'Rent Only'. Only rent price can be edited."}
                   {selectedVehicle.purpose === 'sale' && "This vehicle is set as 'Sale Only'. Only sale price can be edited."}
                   {selectedVehicle.purpose === 'both' && "Switch freely between rent, sale, or both prices view - all tabs are enabled"}
@@ -339,7 +339,7 @@ const VehiclePriceManager = () => {
                 {/* Show Rent Price Input only for rent or both purpose vehicles */}
                 {(selectedVehicle.purpose === 'rent' || selectedVehicle.purpose === 'both') && (
                   <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
+                    <label className="block text-slate-700 text-sm font-medium mb-2">
                       Rent Price {selectedVehicle.purpose === 'rent' && '*'}
                     </label>
                     <input
@@ -347,9 +347,9 @@ const VehiclePriceManager = () => {
                       value={priceData.rentPrice}
                       onChange={(e) => setPriceData({...priceData, rentPrice: e.target.value})}
                       placeholder="e.g., ₹4,500/day"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                     />
-                    <p className="text-white/60 text-xs mt-1">
+                    <p className="text-slate-600 text-xs mt-1">
                       Format: ₹X,XXX/day or ₹X,XXX/month
                     </p>
                   </div>
@@ -358,7 +358,7 @@ const VehiclePriceManager = () => {
                 {/* Show Sale Price Input only for sale or both purpose vehicles */}
                 {(selectedVehicle.purpose === 'sale' || selectedVehicle.purpose === 'both') && (
                   <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
+                    <label className="block text-slate-700 text-sm font-medium mb-2">
                       Sale Price {selectedVehicle.purpose === 'sale' && '*'}
                     </label>
                     <input
@@ -366,23 +366,23 @@ const VehiclePriceManager = () => {
                       value={priceData.salePrice}
                       onChange={(e) => setPriceData({...priceData, salePrice: e.target.value})}
                       placeholder="e.g., ₹8,50,000"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                     />
-                    <p className="text-white/60 text-xs mt-1">
+                    <p className="text-slate-600 text-xs mt-1">
                       Format: ₹X,XX,XXX
                     </p>
                   </div>
                 )}
 
                 {/* Current Prices Display */}
-                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                  <h5 className="text-white font-semibold mb-2">Current Prices</h5>
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <h5 className="text-slate-800 font-semibold mb-2">Current Prices</h5>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {/* Always show rent price for rent or both purpose vehicles */}
                     {(selectedVehicle.purpose === 'rent' || selectedVehicle.purpose === 'both') && (
                       <div>
-                        <span className="text-white/60">Rent:</span>
-                        <p className="text-gold-400 font-semibold">
+                        <span className="text-slate-600">Rent:</span>
+                        <p className="text-gold-500 font-semibold">
                           {selectedVehicle.rentPrice || selectedVehicle.price || 'Not set'}
                         </p>
                       </div>
@@ -391,8 +391,8 @@ const VehiclePriceManager = () => {
                     {/* Only show sale price for sale or both purpose vehicles */}
                     {(selectedVehicle.purpose === 'sale' || selectedVehicle.purpose === 'both') && (
                       <div>
-                        <span className="text-white/60">Sale:</span>
-                        <p className="text-green-400 font-semibold">
+                        <span className="text-slate-600">Sale:</span>
+                        <p className="text-green-500 font-semibold">
                           {selectedVehicle.salePrice || 'Not set'}
                         </p>
                       </div>
@@ -401,8 +401,8 @@ const VehiclePriceManager = () => {
                     {/* If it's rent-only and we only have one price, make it full width */}
                     {selectedVehicle.purpose === 'rent' && (
                       <div className={selectedVehicle.purpose === 'rent' ? 'col-span-2' : ''}>
-                        <span className="text-white/60">Rent Price:</span>
-                        <p className="text-gold-400 font-semibold">
+                        <span className="text-slate-600">Rent Price:</span>
+                        <p className="text-gold-500 font-semibold">
                           {selectedVehicle.rentPrice || selectedVehicle.price || 'Not set'}
                         </p>
                       </div>
@@ -411,8 +411,8 @@ const VehiclePriceManager = () => {
                     {/* If it's sale-only and we only have one price, make it full width */}
                     {selectedVehicle.purpose === 'sale' && (
                       <div className={selectedVehicle.purpose === 'sale' ? 'col-span-2' : ''}>
-                        <span className="text-white/60">Sale Price:</span>
-                        <p className="text-green-400 font-semibold">
+                        <span className="text-slate-600">Sale Price:</span>
+                        <p className="text-green-500 font-semibold">
                           {selectedVehicle.salePrice || 'Not set'}
                         </p>
                       </div>
@@ -430,10 +430,10 @@ const VehiclePriceManager = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10 text-center">
-              <div className="text-6xl mb-4 text-white/40">💰</div>
-              <h4 className="text-lg font-semibold text-white mb-2">Select a Vehicle</h4>
-              <p className="text-white/60">
+            <div className="bg-blue-50 rounded-xl p-8 border border-blue-200 text-center">
+              <div className="text-6xl mb-4 text-slate-400">💰</div>
+              <h4 className="text-lg font-semibold text-slate-800 mb-2">Select a Vehicle</h4>
+              <p className="text-slate-600">
                 Choose a vehicle from the list to manage its rental and sale prices.
               </p>
             </div>
@@ -443,23 +443,23 @@ const VehiclePriceManager = () => {
 
       {/* Quick Stats */}
       <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-        <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
-          <p className="text-blue-300 font-semibold text-xl">
+        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+          <p className="text-blue-700 font-semibold text-xl">
             {vehicles.filter(v => v.purpose === 'rent').length}
           </p>
-          <p className="text-blue-300 text-sm">Rent Only</p>
+          <p className="text-blue-700 text-sm">Rent Only</p>
         </div>
-        <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
-          <p className="text-green-300 font-semibold text-xl">
+        <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+          <p className="text-green-700 font-semibold text-xl">
             {vehicles.filter(v => v.purpose === 'sale').length}
           </p>
-          <p className="text-green-300 text-sm">Sale Only</p>
+          <p className="text-green-700 text-sm">Sale Only</p>
         </div>
-        <div className="bg-purple-500/20 rounded-lg p-3 border border-purple-500/30">
-          <p className="text-purple-300 font-semibold text-xl">
+        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+          <p className="text-purple-700 font-semibold text-xl">
             {vehicles.filter(v => v.purpose === 'both').length}
           </p>
-          <p className="text-purple-300 text-sm">Dual Purpose</p>
+          <p className="text-purple-700 text-sm">Dual Purpose</p>
         </div>
       </div>
     </div>

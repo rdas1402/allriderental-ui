@@ -242,28 +242,28 @@ const VehicleAvailabilityManager = () => {
     return (
       <div className={`p-3 rounded-lg border ${
         availability.isAvailable 
-          ? 'bg-green-500/20 border-green-500/30' 
+          ? 'bg-green-50 border-green-200' 
           : hasBookingConflicts 
-            ? 'bg-orange-500/20 border-orange-500/30'
-            : 'bg-red-500/20 border-red-500/30'
+            ? 'bg-orange-50 border-orange-200'
+            : 'bg-red-50 border-red-200'
       }`}>
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <p className="text-white font-medium">
+            <p className="text-slate-800 font-medium">
               {new Date(availability.startDate).toLocaleDateString()} - {new Date(availability.endDate).toLocaleDateString()}
             </p>
             <p className={`text-sm ${
               availability.isAvailable 
-                ? 'text-green-300' 
+                ? 'text-green-700' 
                 : hasBookingConflicts 
-                  ? 'text-orange-300'
-                  : 'text-red-300'
+                  ? 'text-orange-700'
+                  : 'text-red-700'
             }`}>
               {availability.isAvailable ? '✅ Available' : '❌ Unavailable'}
               {availability.reason && ` - ${availability.reason}`}
               {hasBookingConflicts && ' ⚠️ Has booking conflicts'}
             </p>
-            <p className="text-white/60 text-xs mt-1">
+            <p className="text-slate-600 text-xs mt-1">
               Created: {new Date(availability.createdAt).toLocaleDateString()}
             </p>
           </div>
@@ -272,8 +272,8 @@ const VehicleAvailabilityManager = () => {
             disabled={hasBookingConflicts}
             className={`ml-2 text-sm px-3 py-1 rounded ${
               hasBookingConflicts
-                ? 'text-orange-400 cursor-not-allowed bg-orange-500/20'
-                : 'text-red-400 hover:text-red-300 hover:bg-red-500/20'
+                ? 'text-orange-600 cursor-not-allowed bg-orange-100'
+                : 'text-red-600 hover:text-red-700 hover:bg-red-100'
             }`}
             title={hasBookingConflicts ? "Cannot delete: Has booking conflicts" : "Delete availability"}
           >
@@ -285,27 +285,27 @@ const VehicleAvailabilityManager = () => {
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-      <h3 className="text-xl font-semibold text-white mb-6">Vehicle Availability Management</h3>
+    <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-lg">
+      <h3 className="text-xl font-semibold text-slate-800 mb-6">Vehicle Availability Management</h3>
 
       {message && (
         <div className={`mb-4 p-3 rounded-lg text-center ${
           message.includes("success") || message.includes("Success") || message.includes("Cleared")
-            ? "bg-green-500/20 text-green-300 border border-green-500/30" 
-            : "bg-red-500/20 text-red-300 border border-red-500/30"
+            ? "bg-green-50 text-green-700 border border-green-200" 
+            : "bg-red-50 text-red-700 border border-red-200"
         }`}>
           {message}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex space-x-4 mb-6 border-b border-white/20 pb-4">
+      <div className="flex space-x-4 mb-6 border-b border-blue-200 pb-4">
         <button
           onClick={() => setActiveTab('set-availability')}
           className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
             activeTab === 'set-availability' 
               ? 'bg-gold-500 text-slate-900' 
-              : 'bg-white/10 text-white hover:bg-white/20'
+              : 'bg-blue-50 text-slate-700 hover:bg-blue-100 border border-blue-200'
           }`}
         >
           Set Availability
@@ -315,7 +315,7 @@ const VehicleAvailabilityManager = () => {
           className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
             activeTab === 'view-availability' 
               ? 'bg-gold-500 text-slate-900' 
-              : 'bg-white/10 text-white hover:bg-white/20'
+              : 'bg-blue-50 text-slate-700 hover:bg-blue-100 border border-blue-200'
           }`}
         >
           View Availability
@@ -326,7 +326,7 @@ const VehicleAvailabilityManager = () => {
         <div className="space-y-6">
           {/* Vehicle Selection */}
           <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
+            <label className="block text-slate-700 text-sm font-medium mb-2">
               Select Vehicle
             </label>
             <select
@@ -340,7 +340,7 @@ const VehicleAvailabilityManager = () => {
                 const vehicle = vehicles.find(v => v.id.toString() === vehicleId);
                 handleVehicleSelect(vehicle || null);
               }}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+              className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
             >
               <option value="">Choose a vehicle...</option>
               {vehicles.map(vehicle => (
@@ -354,29 +354,29 @@ const VehicleAvailabilityManager = () => {
           {selectedVehicle && (
             <>
               {/* Selected Vehicle Info */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                 <div className="flex items-center space-x-4">
                   <div 
                     className="w-16 h-16 bg-cover bg-center rounded-lg"
                     style={{ backgroundImage: `url(${selectedVehicle.imageUrl})` }}
                   ></div>
                   <div>
-                    <h4 className="text-white font-semibold">{selectedVehicle.name}</h4>
-                    <p className="text-gold-400">{selectedVehicle.price}</p>
-                    <p className="text-white/60 text-sm">📍 {selectedVehicle.city} • {selectedVehicle.type} • Purpose: {selectedVehicle.purpose}</p>
+                    <h4 className="text-slate-800 font-semibold">{selectedVehicle.name}</h4>
+                    <p className="text-gold-500">{selectedVehicle.price}</p>
+                    <p className="text-slate-600 text-sm">📍 {selectedVehicle.city} • {selectedVehicle.type} • Purpose: {selectedVehicle.purpose}</p>
                   </div>
                 </div>
               </div>
 
               {/* Conflict Resolution Alert */}
               {hasConflicts && (
-                <div className="p-4 bg-orange-500/20 border border-orange-500/30 rounded-xl">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-orange-300 font-semibold mb-1">
+                      <p className="text-orange-700 font-semibold mb-1">
                         ⚠️ Conflicting Availability Records
                       </p>
-                      <p className="text-orange-200 text-sm">
+                      <p className="text-orange-600 text-sm">
                         Multiple availability records found for the same dates. This may cause unexpected behavior.
                       </p>
                     </div>
@@ -394,7 +394,7 @@ const VehicleAvailabilityManager = () => {
               {/* Availability Form */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Start Date *
                   </label>
                   <input
@@ -402,12 +402,12 @@ const VehicleAvailabilityManager = () => {
                     value={availabilityData.startDate}
                     onChange={(e) => setAvailabilityData({...availabilityData, startDate: e.target.value})}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                    className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     End Date *
                   </label>
                   <input
@@ -415,12 +415,12 @@ const VehicleAvailabilityManager = () => {
                     value={availabilityData.endDate}
                     onChange={(e) => setAvailabilityData({...availabilityData, endDate: e.target.value})}
                     min={availabilityData.startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                    className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Availability Status
                   </label>
                   <div className="flex space-x-4">
@@ -431,9 +431,9 @@ const VehicleAvailabilityManager = () => {
                         value={true}
                         checked={availabilityData.isAvailable}
                         onChange={() => setAvailabilityData({...availabilityData, isAvailable: true})}
-                        className="text-gold-400 focus:ring-gold-400"
+                        className="text-gold-500 focus:ring-gold-500"
                       />
-                      <span className="ml-2 text-white">Available</span>
+                      <span className="ml-2 text-slate-700">Available</span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -442,16 +442,16 @@ const VehicleAvailabilityManager = () => {
                         value={false}
                         checked={!availabilityData.isAvailable}
                         onChange={() => setAvailabilityData({...availabilityData, isAvailable: false})}
-                        className="text-gold-400 focus:ring-gold-400"
+                        className="text-gold-500 focus:ring-gold-500"
                       />
-                      <span className="ml-2 text-white">Unavailable</span>
+                      <span className="ml-2 text-slate-700">Unavailable</span>
                     </label>
                   </div>
                 </div>
 
                 {!availabilityData.isAvailable && (
                   <div className="md:col-span-2">
-                    <label className="block text-white/80 text-sm font-medium mb-2">
+                    <label className="block text-slate-700 text-sm font-medium mb-2">
                       Reason for Unavailability
                     </label>
                     <input
@@ -459,7 +459,7 @@ const VehicleAvailabilityManager = () => {
                       value={availabilityData.reason}
                       onChange={(e) => setAvailabilityData({...availabilityData, reason: e.target.value})}
                       placeholder="e.g., Maintenance, Repair, Service"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                     />
                   </div>
                 )}
@@ -474,7 +474,7 @@ const VehicleAvailabilityManager = () => {
               </button>
 
               {/* Help Text */}
-              <div className="text-center text-white/60 text-sm">
+              <div className="text-center text-slate-600 text-sm">
                 <p>💡 Tip: Setting a vehicle as "Available" will override any previous "Unavailable" records for the same dates.</p>
               </div>
             </>
@@ -486,7 +486,7 @@ const VehicleAvailabilityManager = () => {
         <div className="space-y-4">
           {/* Vehicle Selection for Viewing */}
           <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
+            <label className="block text-slate-700 text-sm font-medium mb-2">
               Select Vehicle to View Availability
             </label>
             <select
@@ -495,7 +495,7 @@ const VehicleAvailabilityManager = () => {
                 const vehicle = vehicles.find(v => v.id.toString() === e.target.value);
                 handleVehicleSelect(vehicle);
               }}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+              className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
             >
               <option value="">Choose a vehicle...</option>
               {vehicles.map(vehicle => (
@@ -510,13 +510,13 @@ const VehicleAvailabilityManager = () => {
             <>
               {/* Conflict Resolution Alert */}
               {hasConflicts && (
-                <div className="p-4 bg-orange-500/20 border border-orange-500/30 rounded-xl">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-orange-300 font-semibold mb-1">
+                      <p className="text-orange-700 font-semibold mb-1">
                         ⚠️ Conflicting Availability Records
                       </p>
-                      <p className="text-orange-200 text-sm">
+                      <p className="text-orange-600 text-sm">
                         Multiple availability records found for the same dates. This may cause unexpected behavior.
                       </p>
                     </div>
@@ -532,8 +532,8 @@ const VehicleAvailabilityManager = () => {
               )}
 
               {/* Availability List */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h4 className="text-white font-semibold mb-4">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <h4 className="text-slate-800 font-semibold mb-4">
                   Availability for {selectedVehicle.name}
                 </h4>
                 
@@ -544,7 +544,7 @@ const VehicleAvailabilityManager = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-white/60 text-center py-4">
+                  <p className="text-slate-600 text-center py-4">
                     No availability records found for this vehicle.
                   </p>
                 )}
@@ -552,24 +552,24 @@ const VehicleAvailabilityManager = () => {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
-                  <p className="text-green-300 font-semibold">
+                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <p className="text-green-700 font-semibold">
                     {existingAvailability.filter(a => a.isAvailable).length}
                   </p>
-                  <p className="text-green-300 text-sm">Available Periods</p>
+                  <p className="text-green-700 text-sm">Available Periods</p>
                 </div>
-                <div className="bg-red-500/20 rounded-lg p-3 border border-red-500/30">
-                  <p className="text-red-300 font-semibold">
+                <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                  <p className="text-red-700 font-semibold">
                     {existingAvailability.filter(a => !a.isAvailable).length}
                   </p>
-                  <p className="text-red-300 text-sm">Unavailable Periods</p>
+                  <p className="text-red-700 text-sm">Unavailable Periods</p>
                 </div>
               </div>
 
               {/* Vehicle Status Summary */}
-              <div className="bg-blue-500/20 rounded-xl p-4 border border-blue-500/30">
-                <h5 className="text-blue-300 font-semibold mb-2">Vehicle Status Summary</h5>
-                <div className="text-white/80 text-sm space-y-1">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <h5 className="text-blue-700 font-semibold mb-2">Vehicle Status Summary</h5>
+                <div className="text-slate-700 text-sm space-y-1">
                   <p>• Total Records: {existingAvailability.length}</p>
                   <p>• Has Conflicts: {hasConflicts ? 'Yes ⚠️' : 'No ✅'}</p>
                   <p>• Last Updated: {

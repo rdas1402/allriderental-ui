@@ -73,13 +73,13 @@ const VehicleAvailabilityCalendar = ({ vehicleId, vehicleName }) => {
           key={i}
           className={`p-2 text-center rounded-lg border text-sm ${
             status === 'available' 
-              ? 'bg-green-500/20 border-green-500/30 text-green-300' 
+              ? 'bg-green-50 border-green-200 text-green-700' 
               : status === 'booked'
-                ? 'bg-red-500/20 border-red-500/30 text-red-300'
+                ? 'bg-red-50 border-red-200 text-red-700'
                 : status === 'unavailable'
-                  ? 'bg-orange-500/20 border-orange-500/30 text-orange-300'
-                  : 'bg-gray-500/20 border-gray-500/30 text-gray-400'
-          } ${isToday ? 'ring-2 ring-gold-400' : ''}`}
+                  ? 'bg-orange-50 border-orange-200 text-orange-700'
+                  : 'bg-gray-50 border-gray-200 text-gray-400'
+          } ${isToday ? 'ring-2 ring-gold-500' : ''}`}
           title={`${date.toLocaleDateString()} - ${status.charAt(0).toUpperCase() + status.slice(1)}`}
         >
           {i}
@@ -92,38 +92,38 @@ const VehicleAvailabilityCalendar = ({ vehicleId, vehicleName }) => {
 
   if (loading) {
     return (
-      <div className="bg-white/10 rounded-xl p-4 border border-white/20">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold-400 mx-auto"></div>
+      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold-500 mx-auto"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-      <h4 className="text-white font-semibold mb-4">
+    <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-lg">
+      <h4 className="text-slate-800 font-semibold mb-4">
         Availability Calendar - {vehicleName}
       </h4>
       
       <div className="grid grid-cols-7 gap-2 mb-4">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center text-white/60 text-sm font-medium p-2">
+          <div key={day} className="text-center text-slate-600 text-sm font-medium p-2">
             {day}
           </div>
         ))}
         {renderCalendar()}
       </div>
       
-      <div className="flex items-center justify-center space-x-4 text-xs text-white/60">
+      <div className="flex items-center justify-center space-x-4 text-xs text-slate-600">
         <div className="flex items-center">
-          <div className="w-3 h-3 bg-green-500/20 border border-green-500/30 rounded mr-1"></div>
+          <div className="w-3 h-3 bg-green-50 border border-green-200 rounded mr-1"></div>
           Available
         </div>
         <div className="flex items-center">
-          <div className="w-3 h-3 bg-red-500/20 border border-red-500/30 rounded mr-1"></div>
+          <div className="w-3 h-3 bg-red-50 border border-red-200 rounded mr-1"></div>
           Booked
         </div>
         <div className="flex items-center">
-          <div className="w-3 h-3 bg-orange-500/20 border border-orange-500/30 rounded mr-1"></div>
+          <div className="w-3 h-3 bg-orange-50 border border-orange-200 rounded mr-1"></div>
           Unavailable
         </div>
       </div>

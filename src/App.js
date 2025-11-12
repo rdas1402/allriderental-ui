@@ -19,6 +19,7 @@ import BookingConfirmationPage from './components/BookingConfirmationPage';
 import ProfilePage from './components/ProfilePage';
 import BookingPage from './components/BookingPage';
 import AdminDashboard from './components/AdminDashboard'; // Add this import
+import PaymentGatewayPage from './components/PaymentGatewayPage';
 
 function App() {
   const basename = process.env.REACT_APP_BASENAME || '';
@@ -45,6 +46,7 @@ function App() {
           <Route path="/booking" element={<BookingPage />} />
           {/* Add Admin Dashboard Route */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/payment" element={<PaymentGatewayPage />} />
         </Routes>
       </Layout>
     </Router>

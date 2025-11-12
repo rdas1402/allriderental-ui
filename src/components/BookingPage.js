@@ -1,3 +1,4 @@
+// components/BookingPage.js
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { bookingsAPI } from "../services/apiService";
@@ -20,11 +21,24 @@ const BookingPage = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingBookings, setIsFetchingBookings] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState("");
   const [blockedDates, setBlockedDates] = useState([]);
   const [isVehicleAvailable, setIsVehicleAvailable] = useState(true);
   const [unavailablePeriods, setUnavailablePeriods] = useState([]);
+
+  // Format time display function
+  const formatTimeDisplay = (timeString) => {
+    if (!timeString) return 'Not set';
+    
+    try {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    } catch {
+      return timeString;
+    }
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -218,7 +232,16 @@ const BookingPage = () => {
   };
 
   const calculateTotal = () => {
-    if (!bookingData.startDate || !bookingData.endDate) return 0;
+    // Default values when no dates are selected
+    if (!bookingData.startDate || !bookingData.endDate) {
+      return {
+        baseRate: 0,
+        insuranceCost: 0,
+        additionalDriverCost: 0,
+        convenienceFee: 0,
+        total: 0
+      };
+    }
     
     const start = new Date(bookingData.startDate);
     const end = new Date(bookingData.endDate);
@@ -227,21 +250,34 @@ const BookingPage = () => {
     // Extract price from vehicle (assuming format like "₹2,500/day")
     const pricePerDay = parseInt(vehicle.price.replace(/[^0-9]/g, '')) || 2500;
     
-    let total = days * pricePerDay;
+    let baseRate = days * pricePerDay;
     
     // Add insurance costs
+    let insuranceCost = 0;
     if (bookingData.insurance === "premium") {
-      total += 500 * days;
+      insuranceCost = 500 * days;
     } else if (bookingData.insurance === "comprehensive") {
-      total += 1000 * days;
+      insuranceCost = 1000 * days;
     }
     
     // Add additional driver cost
+    let additionalDriverCost = 0;
     if (bookingData.additionalDriver) {
-      total += 300 * days;
+      additionalDriverCost = 300 * days;
     }
     
-    return total;
+    // Calculate convenience fee (3% of base rate)
+    const convenienceFee = Math.round(baseRate * 0.03);
+    
+    const total = baseRate + insuranceCost + additionalDriverCost + convenienceFee;
+    
+    return {
+      baseRate,
+      insuranceCost,
+      additionalDriverCost,
+      convenienceFee,
+      total
+    };
   };
 
   const handleInputChange = (e) => {
@@ -299,92 +335,23 @@ const BookingPage = () => {
     return true;
   };
 
-  const handleProceedToBook = () => {
+  const handleProceedToPay = async () => {
     setError("");
-    if (validateBooking()) {
-      setShowConfirmation(true);
-    }
-  };
-
-  // Handle localStorage data format
-  const storeBookingInLocalStorage = (booking) => {
-    try {
-      // Get existing bookings from localStorage - handle different formats
-      const storedBookings = localStorage.getItem("userBookings");
-      let existingBookings = [];
-  
-      console.log("Stored bookings:", storedBookings);
-  
-      if (storedBookings) {
-        try {
-          const parsedData = JSON.parse(storedBookings);
-          console.log("Parsed bookings data:", parsedData);
-          
-          // Handle different possible formats:
-          if (Array.isArray(parsedData)) {
-            existingBookings = parsedData;
-          } 
-          else if (parsedData && Array.isArray(parsedData.bookings)) {
-            existingBookings = parsedData.bookings;
-          }
-          else if (parsedData && parsedData.bookings && Array.isArray(parsedData.bookings)) {
-            existingBookings = parsedData.bookings;
-          }
-          else if (parsedData && typeof parsedData === 'object' && parsedData.id) {
-            existingBookings = [parsedData];
-          }
-          else {
-            console.log("Unknown bookings format, starting fresh");
-            existingBookings = [];
-          }
-        } catch (parseError) {
-          console.error("Error parsing stored bookings:", parseError);
-          existingBookings = [];
-        }
-      }
-  
-      // Add new booking to existing bookings
-      const updatedBookings = [booking, ...existingBookings];
-      
-      // Save back to localStorage with consistent structure
-      const storageData = {
-        bookings: updatedBookings,
-        success: true,
-        timestamp: new Date().toISOString(),
-        count: updatedBookings.length
-      };
-      
-      localStorage.setItem("userBookings", JSON.stringify(storageData));
-      
-      console.log("Booking stored in localStorage:", booking);
-      console.log("Updated bookings count:", updatedBookings.length);
-      return booking;
-    } catch (error) {
-      console.error("Error storing booking in localStorage:", error);
-      return null;
-    }
-  };
-
-  // Handle API response and localStorage update
-  const handleConfirmBooking = async () => {
-    setIsLoading(true);
-    setError("");
-  
-    // Double-check user data
-    if (!userData || !userData.phone) {
-      setError("User data not found. Please login again.");
-      setIsLoading(false);
-      setShowConfirmation(false);
+    if (!validateBooking()) {
       return;
     }
-  
+
+    setIsLoading(true);
+
     try {
-      const bookingPayload = {
+      const costBreakdown = calculateTotal();
+      
+      // Create booking object for payment page
+      const bookingForPayment = {
+        id: `#BK${Date.now().toString().slice(-6)}`,
         vehicleId: vehicle.id,
         vehicleName: vehicle.name,
-        customerPhone: userData.phone,
-        customerName: userData.name || "Customer",
-        customerEmail: userData.email || "",
+        vehicleImage: vehicle.imageUrl,
         startDate: bookingData.startDate,
         endDate: bookingData.endDate,
         pickupTime: bookingData.pickupTime,
@@ -392,82 +359,56 @@ const BookingPage = () => {
         pickupLocation: bookingData.pickupLocation,
         additionalDriver: bookingData.additionalDriver,
         insurance: bookingData.insurance,
-        totalAmount: calculateTotal(),
-        status: "confirmed"
+        duration: `${Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24))} days`,
+        baseRate: costBreakdown.baseRate,
+        insuranceCost: costBreakdown.insuranceCost,
+        additionalDriverCost: costBreakdown.additionalDriverCost,
+        convenienceFee: costBreakdown.convenienceFee,
+        total: costBreakdown.total,
+        status: 'pending_payment',
+        bookingDate: new Date().toISOString(),
+        features: vehicle.features || [],
+        customerPhone: userData?.phone,
+        customerName: userData?.name
       };
-  
-      console.log("Making API call to create booking...", bookingPayload);
-      
-      // Call API to create booking FIRST - before storing in localStorage
-      const response = await bookingsAPI.createBooking(bookingPayload);
-      console.log("API Response:", response);
-      
-      if (response && response.success) {
-        console.log("Booking created successfully via API:", response);
-        
-        const realBookingId = response.bookingId || response.booking?.id;
-        
-        // Create the complete booking object for localStorage
-        const bookingForStorage = {
-          ...bookingPayload,
-          id: realBookingId || `BK${Date.now()}`,
-          apiId: realBookingId,
-          vehicleImage: vehicle.imageUrl,
-          date: new Date().toLocaleDateString(),
-          duration: `${Math.ceil((new Date(bookingPayload.endDate) - new Date(bookingPayload.startDate)) / (1000 * 60 * 60 * 24))} days`,
-          total: `₹${bookingPayload.totalAmount.toLocaleString()}`,
-          status: 'Confirmed',
-          bookingDate: new Date().toISOString(),
-          features: vehicle.features || [],
-          customerPhone: userData?.phone,
-          customerName: userData?.name
-        };
-  
-        // Store booking in localStorage ONLY after API success
-        const storedBooking = storeBookingInLocalStorage(bookingForStorage);
-        
-        // Navigate to confirmation page
-        navigate("/booking-confirmation", { 
-          state: { 
-            vehicle, 
-            booking: storedBooking || bookingForStorage,
-            user: userData 
-          } 
-        });
-      } else {
-        throw new Error(response?.message || "Failed to create booking");
-      }
-    } catch (err) {
-      console.error("Booking error:", err);
-      setError(err.message || "Failed to create booking. Please try again.");
-      
-      // No cleanup needed since we never stored anything in localStorage
+
+      // Navigate directly to payment page
+      navigate("/payment", { 
+        state: { 
+          vehicle, 
+          booking: bookingForPayment,
+          user: userData 
+        } 
+      });
+
+    } catch (error) {
+      console.error("Error preparing payment:", error);
+      setError("Failed to proceed to payment. Please try again.");
     } finally {
       setIsLoading(false);
-      setShowConfirmation(false);
     }
   };
 
-  const totalAmount = calculateTotal();
+  const costBreakdown = calculateTotal();
   const days = bookingData.startDate && bookingData.endDate 
     ? Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)) 
     : 0;
 
   if (!vehicle || !userData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-slate-600">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen">
-      {/* Background Image */}
+    <div className="relative min-h-screen bg-white">
+      {/* Background Image with Light Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
         style={{
-          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
         }}
       ></div>
       
@@ -475,23 +416,23 @@ const BookingPage = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Side - Booking Form */}
           <div className="lg:w-2/3">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
-              <h1 className="text-3xl font-light text-white mb-2">
-                Book Your <span className="font-semibold text-gold-400">{vehicle.name}</span>
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 border border-blue-200 shadow-2xl">
+              <h1 className="text-3xl font-light text-slate-800 mb-2">
+                Book Your <span className="font-semibold text-gold-500">{vehicle.name}</span>
               </h1>
-              <p className="text-white/60 mb-8">Complete your booking details</p>
+              <p className="text-slate-600 mb-8">Complete your booking details</p>
 
               {error && (
-                <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-4 mb-6">
-                  <p className="text-red-200 text-center">{error}</p>
+                <div className="bg-red-500/20 border border-red-300 rounded-xl p-4 mb-6">
+                  <p className="text-red-700 text-center">{error}</p>
                 </div>
               )}
 
               {/* Loading State for Date Availability Check */}
               {isFetchingBookings && (
-                <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-6">
-                  <div className="flex items-center justify-center text-blue-200">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400 mr-3"></div>
+                <div className="bg-blue-500/20 border border-blue-300 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-center text-blue-700">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-3"></div>
                     <span>Checking vehicle availability...</span>
                   </div>
                 </div>
@@ -499,8 +440,8 @@ const BookingPage = () => {
 
               {/* Availability Notice - Show if there are blocked dates */}
               {!isFetchingBookings && blockedDates.length > 0 && (
-                <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-6">
-                  <p className="text-blue-200 text-center text-sm">
+                <div className="bg-blue-500/20 border border-blue-300 rounded-xl p-4 mb-6">
+                  <p className="text-blue-700 text-center text-sm">
                     📅 Some dates are blocked due to existing bookings or manual unavailability.
                   </p>
                 </div>
@@ -509,7 +450,7 @@ const BookingPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Pickup Date */}
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Pickup Date *
                   </label>
                   <input
@@ -518,22 +459,22 @@ const BookingPage = () => {
                     value={bookingData.startDate}
                     onChange={handleDateChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm ${
+                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${
                       bookingData.startDate && isDateBlocked(bookingData.startDate) 
-                        ? 'border-red-400/50' 
-                        : 'border-white/20'
+                        ? 'border-red-400' 
+                        : 'border-blue-300'
                     }`}
                     required
                     disabled={isFetchingBookings}
                   />
                   {bookingData.startDate && isDateBlocked(bookingData.startDate) && (
-                    <p className="text-red-400 text-xs mt-1">This date is not available</p>
+                    <p className="text-red-500 text-xs mt-1">This date is not available</p>
                   )}
                 </div>
 
                 {/* Dropoff Date */}
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Dropoff Date *
                   </label>
                   <input
@@ -542,22 +483,22 @@ const BookingPage = () => {
                     value={bookingData.endDate}
                     onChange={handleDateChange}
                     min={bookingData.startDate || new Date().toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm ${
+                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${
                       bookingData.endDate && isDateBlocked(bookingData.endDate) 
-                        ? 'border-red-400/50' 
-                        : 'border-white/20'
+                        ? 'border-red-400' 
+                        : 'border-blue-300'
                     }`}
                     required
                     disabled={isFetchingBookings}
                   />
                   {bookingData.endDate && isDateBlocked(bookingData.endDate) && (
-                    <p className="text-red-400 text-xs mt-1">This date is not available</p>
+                    <p className="text-red-500 text-xs mt-1">This date is not available</p>
                   )}
                 </div>
 
                 {/* Pickup Time */}
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Pickup Time
                   </label>
                   <div className="relative">
@@ -565,35 +506,44 @@ const BookingPage = () => {
                       name="pickupTime"
                       value={bookingData.pickupTime}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer"
                       disabled={isFetchingBookings}
                     >
-                      {Array.from({ length: 13 }, (_, i) => {
-                        const hour = i + 8; // 8 AM to 8 PM
-                        const timeString = `${hour}:00`;
-                        const displayTime = `${hour}:00 ${hour < 12 ? 'AM' : hour === 12 ? 'PM' : 'PM'}`;
+                      {Array.from({ length: 49 }, (_, i) => {
+                        const totalMinutes = i * 30; // 30-minute intervals
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        
+                        // 24-hour format
+                        const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        
+                        // 12-hour format with AM/PM
+                        const period = hours >= 12 ? 'PM' : 'AM';
+                        const displayHours = hours % 12 || 12;
+                        const time12 = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+                        
                         return (
-                          <option key={hour} value={timeString} className="text-slate-900 bg-white">
-                            {displayTime}
+                          <option key={time24} value={time24} className="text-slate-900 bg-white">
+                            {time12}
                           </option>
                         );
                       })}
                     </select>
                     {/* Custom dropdown arrow */}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                      <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
                   </div>
-                  <p className="text-gold-400 text-xs mt-2 font-medium text-center bg-gold-400/20 py-1 rounded-lg">
-                    🕒 {bookingData.pickupTime} {parseInt(bookingData.pickupTime) < 12 ? 'AM' : 'PM'}
+                  <p className="text-gold-500 text-xs mt-2 font-medium text-center bg-gold-100 py-1 rounded-lg border border-gold-300">
+                    🕒 {formatTimeDisplay(bookingData.pickupTime)}
                   </p>
                 </div>
 
                 {/* Dropoff Time */}
                 <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Dropoff Time
                   </label>
                   <div className="relative">
@@ -601,35 +551,44 @@ const BookingPage = () => {
                       name="dropoffTime"
                       value={bookingData.dropoffTime}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer"
                       disabled={isFetchingBookings}
                     >
-                      {Array.from({ length: 13 }, (_, i) => {
-                        const hour = i + 8;
-                        const timeString = `${hour}:00`;
-                        const displayTime = `${hour}:00 ${hour < 12 ? 'AM' : hour === 12 ? 'PM' : 'PM'}`;
+                      {Array.from({ length: 49 }, (_, i) => {
+                        const totalMinutes = i * 30; // 30-minute intervals
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        
+                        // 24-hour format
+                        const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        
+                        // 12-hour format with AM/PM
+                        const period = hours >= 12 ? 'PM' : 'AM';
+                        const displayHours = hours % 12 || 12;
+                        const time12 = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+                        
                         return (
-                          <option key={hour} value={timeString} className="text-slate-900 bg-white">
-                            {displayTime}
+                          <option key={time24} value={time24} className="text-slate-900 bg-white">
+                            {time12}
                           </option>
                         );
                       })}
                     </select>
                     {/* Custom dropdown arrow */}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                      <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
                   </div>
-                  <p className="text-gold-400 text-xs mt-2 font-medium text-center bg-gold-400/20 py-1 rounded-lg">
-                    🕒 {bookingData.dropoffTime} {parseInt(bookingData.dropoffTime) < 12 ? 'AM' : 'PM'}
+                  <p className="text-gold-500 text-xs mt-2 font-medium text-center bg-gold-100 py-1 rounded-lg border border-gold-300">
+                    🕒 {formatTimeDisplay(bookingData.dropoffTime)}
                   </p>
                 </div>
 
                 {/* Pickup Location */}
                 <div className="md:col-span-2">
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-sm font-medium mb-2">
                     Pickup Location
                   </label>
                   <input
@@ -638,19 +597,19 @@ const BookingPage = () => {
                     value={bookingData.pickupLocation}
                     onChange={handleInputChange}
                     placeholder="Enter pickup location"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                    className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                     disabled={isFetchingBookings}
                   />
                 </div>
               </div>
 
               {/* Additional Options */}
-              <div className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Additional Options</h3>
+              <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Additional Options</h3>
                 
                 {/* Insurance */}
                 <div className="mb-6">
-                  <label className="block text-white/80 text-sm font-medium mb-3">
+                  <label className="block text-slate-700 text-sm font-medium mb-3">
                     Insurance Coverage
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -659,22 +618,22 @@ const BookingPage = () => {
                       { value: "premium", label: "Premium", desc: "Enhanced protection", price: "+₹500/day" },
                       { value: "comprehensive", label: "Comprehensive", desc: "Full coverage", price: "+₹1000/day" }
                     ].map(option => (
-                      <label key={option.value} className="flex items-start p-4 border border-white/20 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                      <label key={option.value} className="flex items-start p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white">
                         <input
                           type="radio"
                           name="insurance"
                           value={option.value}
                           checked={bookingData.insurance === option.value}
                           onChange={handleInputChange}
-                          className="mt-1 text-gold-400 focus:ring-gold-400"
+                          className="mt-1 text-gold-500 focus:ring-gold-500"
                           disabled={isFetchingBookings}
                         />
                         <div className="ml-3 flex-1">
                           <div className="flex justify-between items-start">
-                            <span className="text-white font-medium">{option.label}</span>
-                            <span className="text-gold-400 text-sm">{option.price}</span>
+                            <span className="text-slate-800 font-medium">{option.label}</span>
+                            <span className="text-gold-500 text-sm">{option.price}</span>
                           </div>
-                          <p className="text-white/60 text-sm mt-1">{option.desc}</p>
+                          <p className="text-slate-600 text-sm mt-1">{option.desc}</p>
                         </div>
                       </label>
                     ))}
@@ -682,19 +641,19 @@ const BookingPage = () => {
                 </div>
 
                 {/* Additional Driver */}
-                <label className="flex items-center justify-between p-4 border border-white/20 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                <label className="flex items-center justify-between p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white">
                   <div>
-                    <span className="text-white font-medium">Additional Driver</span>
-                    <p className="text-white/60 text-sm mt-1">Add an extra driver to your booking</p>
+                    <span className="text-slate-800 font-medium">Additional Driver</span>
+                    <p className="text-slate-600 text-sm mt-1">Add an extra driver to your booking</p>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-gold-400 mr-3">+₹300/day</span>
+                    <span className="text-gold-500 mr-3">+₹300/day</span>
                     <input
                       type="checkbox"
                       name="additionalDriver"
                       checked={bookingData.additionalDriver}
                       onChange={handleInputChange}
-                      className="w-5 h-5 text-gold-400 focus:ring-gold-400 rounded"
+                      className="w-5 h-5 text-gold-500 focus:ring-gold-500 rounded border-blue-300"
                       disabled={isFetchingBookings}
                     />
                   </div>
@@ -702,48 +661,48 @@ const BookingPage = () => {
               </div>
 
               <button
-                onClick={handleProceedToBook}
+                onClick={handleProceedToPay}
                 disabled={isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)}
                 className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg ${
                   isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)
-                    ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'bg-gold-500 hover:bg-gold-600 text-slate-900 hover:scale-105'
                 }`}
               >
                 {isFetchingBookings ? "Checking Availability..." : 
                  isLoading ? "Processing..." :
                  !isDateRangeAvailable(bookingData.startDate, bookingData.endDate) ? "Vehicle Unavailable for Selected Dates" : 
-                 "Proceed to Book"}
+                 "Proceed to Pay"}
               </button>
             </div>
           </div>
 
           {/* Right Side - Booking Summary */}
           <div className="lg:w-1/3">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl sticky top-6">
-              <h3 className="text-xl font-semibold text-white mb-6">Booking Summary</h3>
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-2xl sticky top-6">
+              <h3 className="text-xl font-semibold text-slate-800 mb-6">Booking Summary</h3>
               
               {/* Vehicle Info */}
-              <div className="flex items-center space-x-4 mb-6 pb-6 border-b border-white/20">
+              <div className="flex items-center space-x-4 mb-6 pb-6 border-b border-blue-200">
                 <div 
                   className="w-20 h-20 bg-cover bg-center rounded-lg"
                   style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
                 ></div>
                 <div>
-                  <h4 className="text-white font-semibold">{vehicle.name}</h4>
-                  <p className="text-gold-400">{vehicle.price}</p>
-                  <p className="text-white/60 text-sm">📍 {vehicle.city}</p>
+                  <h4 className="text-slate-800 font-semibold">{vehicle.name}</h4>
+                  <p className="text-gold-500">{vehicle.price}</p>
+                  <p className="text-slate-600 text-sm">📍 {vehicle.city}</p>
                 </div>
               </div>
 
               {/* Rental Period */}
-              <div className="space-y-3 mb-6 pb-6 border-b border-white/20">
-                <div className="flex justify-between text-white/80">
+              <div className="space-y-3 mb-6 pb-6 border-b border-blue-200">
+                <div className="flex justify-between text-slate-700">
                   <span>Rental Period</span>
                   <span>{days} day{days !== 1 ? 's' : ''}</span>
                 </div>
                 {bookingData.startDate && (
-                  <div className="text-white/60 text-sm">
+                  <div className="text-slate-600 text-sm">
                     {new Date(bookingData.startDate).toLocaleDateString()} - {new Date(bookingData.endDate).toLocaleDateString()}
                   </div>
                 )}
@@ -751,45 +710,44 @@ const BookingPage = () => {
 
               {/* Cost Breakdown */}
               <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-white/80">
+                <div className="flex justify-between text-slate-700">
                   <span>Base Rate</span>
-                  <span>{vehicle.price} × {days}</span>
+                  <span>₹{costBreakdown.baseRate.toLocaleString()}</span>
                 </div>
                 
-                {bookingData.insurance === "premium" && (
-                  <div className="flex justify-between text-white/80">
-                    <span>Premium Insurance</span>
-                    <span>+₹{500 * days}</span>
+                {costBreakdown.insuranceCost > 0 && (
+                  <div className="flex justify-between text-slate-700">
+                    <span>Insurance</span>
+                    <span>+₹{costBreakdown.insuranceCost.toLocaleString()}</span>
                   </div>
                 )}
                 
-                {bookingData.insurance === "comprehensive" && (
-                  <div className="flex justify-between text-white/80">
-                    <span>Comprehensive Insurance</span>
-                    <span>+₹{1000 * days}</span>
-                  </div>
-                )}
-                
-                {bookingData.additionalDriver && (
-                  <div className="flex justify-between text-white/80">
+                {costBreakdown.additionalDriverCost > 0 && (
+                  <div className="flex justify-between text-slate-700">
                     <span>Additional Driver</span>
-                    <span>+₹{300 * days}</span>
+                    <span>+₹{costBreakdown.additionalDriverCost.toLocaleString()}</span>
                   </div>
                 )}
+                
+                {/* Convenience Fee */}
+                <div className="flex justify-between text-slate-700">
+                  <span>Convenience Fee</span>
+                  <span>+₹{costBreakdown.convenienceFee.toLocaleString()}</span>
+                </div>
               </div>
 
               {/* Total */}
-              <div className="flex justify-between items-center pt-4 border-t border-white/20">
-                <span className="text-white font-semibold text-lg">Total Amount</span>
-                <span className="text-gold-400 font-bold text-xl">₹{totalAmount.toLocaleString()}</span>
+              <div className="flex justify-between items-center pt-4 border-t border-blue-200">
+                <span className="text-slate-800 font-semibold text-lg">Total Amount</span>
+                <span className="text-gold-500 font-bold text-xl">₹{costBreakdown.total.toLocaleString()}</span>
               </div>
 
               {/* Availability Status */}
               {bookingData.startDate && bookingData.endDate && (
                 <div className={`mt-4 p-3 rounded-lg text-sm ${
                   isDateRangeAvailable(bookingData.startDate, bookingData.endDate) 
-                    ? 'bg-green-500/20 text-green-400 border border-green-400/30' 
-                    : 'bg-red-500/20 text-red-400 border border-red-400/30'
+                    ? 'bg-green-500/20 text-green-700 border border-green-300' 
+                    : 'bg-red-500/20 text-red-700 border border-red-300'
                 }`}>
                   {isFetchingBookings ? (
                     <div className="flex items-center justify-center">
@@ -806,9 +764,9 @@ const BookingPage = () => {
 
               {/* Unavailable Periods Info */}
               {unavailablePeriods.length > 0 && (
-                <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
-                  <p className="text-yellow-400 text-sm font-semibold mb-2">📅 Unavailable Periods:</p>
-                  <div className="space-y-1 text-yellow-300 text-xs">
+                <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-300 rounded-lg">
+                  <p className="text-yellow-700 text-sm font-semibold mb-2">📅 Unavailable Periods:</p>
+                  <div className="space-y-1 text-yellow-600 text-xs">
                     {unavailablePeriods.slice(0, 3).map((period, index) => (
                       <div key={index}>
                         {new Date(period.startDate).toLocaleDateString()} - {new Date(period.endDate).toLocaleDateString()}
@@ -825,42 +783,6 @@ const BookingPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl max-w-md w-full">
-            <h3 className="text-2xl font-semibold text-white mb-4">Confirm Booking</h3>
-            <p className="text-white/70 mb-6">
-              Are you sure you want to book the {vehicle.name} for {days} day{days !== 1 ? 's' : ''}?
-            </p>
-            <div className="text-white/80 mb-6 space-y-2">
-              <div className="flex justify-between">
-                <span>Total Amount:</span>
-                <span className="text-gold-400 font-semibold">₹{totalAmount.toLocaleString()}</span>
-              </div>
-              <div className="text-sm text-white/60">
-                This amount will be charged at the time of pickup.
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setShowConfirmation(false)}
-                className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-semibold transition-colors border border-white/20"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmBooking}
-                disabled={isLoading}
-                className="flex-1 bg-gold-500 hover:bg-gold-600 disabled:bg-gold-500/50 text-slate-900 py-3 rounded-xl font-semibold transition-colors"
-              >
-                {isLoading ? "Booking..." : "Confirm Booking"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

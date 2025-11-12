@@ -18,7 +18,7 @@ const LoginPage = () => {
     dob: ""
   });
 
-  // Get navigation state - SCENARIO 1: Direct login or SCENARIO 2: From booking
+  // Get navigation state
   const vehicle = location.state?.vehicle;
   const from = location.state?.from;
   const action = location.state?.action;
@@ -32,34 +32,25 @@ const LoginPage = () => {
   }, [countdown]);
 
   const handlePostLoginNavigation = (userProfile, userBookings) => {
-    // SCENARIO 2: If user was trying to book a vehicle
     if (vehicle) {
-      // Navigate to booking page with vehicle data
       navigate("/booking", { 
         state: { 
           vehicle, 
           user: userProfile 
         } 
       });
-    } 
-    // SCENARIO 1.1: If user exists and was accessing profile
-    else if (action === "profile" || from === "/profile") {
+    } else if (action === "profile" || from === "/profile") {
       navigate("/profile", { 
         state: { user: userProfile, bookings: userBookings } 
       });
-    }
-    // SCENARIO 1.2: If user exists and was coming from other pages
-    else if (from && from !== "/") {
+    } else if (from && from !== "/") {
       navigate(from, { state: { user: userProfile } });
-    } 
-    // SCENARIO 1.1: Default - navigate to home
-    else {
+    } else {
       navigate("/", { state: { user: userProfile } });
     }
   };
 
   const handleNewUserRegistrationNavigation = (userProfile) => {
-    // SCENARIO 1.2: New user completes registration - go to profile
     navigate("/profile", { 
       state: { 
         user: userProfile,
@@ -69,7 +60,6 @@ const LoginPage = () => {
     });
   };
 
-  // Traditional OTP methods
   const validatePhoneNumber = (phone) => {
     const phoneRegex = /^[6-9]\d{9}$/;
     return phoneRegex.test(phone);
@@ -97,7 +87,6 @@ const LoginPage = () => {
         setCountdown(30);
         setError("");
         
-        // Show development OTP if available (for testing)
         if (response.developmentOtp) {
           console.log("Development OTP:", response.developmentOtp);
           setError(`WhatsApp OTP sent! Development OTP: ${response.developmentOtp} - Check WhatsApp for actual OTP`);
@@ -136,15 +125,12 @@ const LoginPage = () => {
         throw new Error(verifyResponse.message || "Invalid OTP");
       }
       
-      // Check if user exists in DB
       const userCheck = await authAPI.checkUserExists(phoneNumber);
       
       if (userCheck.exists) {
-        // SCENARIO 1.1 & 2.1: User exists - fetch profile and bookings
         const userProfile = await authAPI.getUserProfile(phoneNumber);
         const userBookings = await authAPI.getUserBookings(phoneNumber);
         
-        // Store in localStorage
         localStorage.setItem("userPhone", phoneNumber);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userData", JSON.stringify(userProfile));
@@ -153,7 +139,6 @@ const LoginPage = () => {
         console.log("User exists, navigating to appropriate page...");
         handlePostLoginNavigation(userProfile, userBookings || []);
       } else {
-        // SCENARIO 1.2: User doesn't exist - show registration form
         console.log("New user, showing registration form...");
         setUserExists(false);
       }
@@ -178,7 +163,6 @@ const LoginPage = () => {
       return;
     }
 
-    // Validate date of birth
     const dobDate = new Date(registrationData.dob);
     const today = new Date();
     if (dobDate >= today) {
@@ -197,7 +181,6 @@ const LoginPage = () => {
 
       const newUser = await authAPI.createUser(userData);
       
-      // Store in localStorage
       localStorage.setItem("userPhone", phoneNumber);
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userData", JSON.stringify(newUser));
@@ -232,11 +215,11 @@ const LoginPage = () => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background Image */}
+      {/* Background Image with Lighter Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
         style={{
-          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
         }}
       ></div>
       
@@ -244,19 +227,19 @@ const LoginPage = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-white/80 hover:text-white mb-8 transition-colors"
+          className="flex items-center text-slate-600 hover:text-slate-800 mb-8 transition-colors"
         >
           <span className="mr-2">←</span>
           Back
         </button>
 
         {/* Login Card */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
+        <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 border border-blue-200 shadow-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-light text-white mb-2">
-              Welcome to <span className="font-semibold text-gold-400">All Ride Rental</span>
+            <h1 className="text-3xl font-light text-slate-800 mb-2">
+              Welcome to <span className="font-semibold text-gold-500">All Ride Rental</span>
             </h1>
-            <p className="text-white/70">
+            <p className="text-slate-600">
               {userExists === false 
                 ? "Complete your registration" 
                 : vehicle 
@@ -266,9 +249,8 @@ const LoginPage = () => {
                     : "Login to your account"
               }
             </p>
-            {/* Show scenario info */}
             {vehicle && (
-              <p className="text-gold-300 text-sm mt-2">
+              <p className="text-gold-500 text-sm mt-2">
                 📍 Booking Flow: {vehicle.name}
               </p>
             )}
@@ -276,34 +258,34 @@ const LoginPage = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-4 mb-6">
-              <p className="text-red-200 text-center">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <p className="text-red-600 text-center">{error}</p>
             </div>
           )}
 
           {/* Success Message */}
           {isOtpSent && !error && (
-            <div className="bg-green-500/20 border border-green-400/30 rounded-xl p-4 mb-6">
-              <p className="text-green-200 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+              <p className="text-green-600 text-center">
                 ✅ WhatsApp OTP sent successfully to +91 {phoneNumber}
               </p>
-              <p className="text-green-200 text-center text-xs mt-1">
+              <p className="text-green-600 text-center text-xs mt-1">
                 Check your WhatsApp messages for the OTP
               </p>
             </div>
           )}
 
-          {/* Registration Form for New Users - SCENARIO 1.2 */}
+          {/* Registration Form for New Users */}
           {userExists === false ? (
             <div className="space-y-6">
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4 mb-4">
-                <p className="text-blue-200 text-center text-sm">
+              <div className="bg-blue-100 border border-blue-300 rounded-xl p-4 mb-4">
+                <p className="text-blue-700 text-center text-sm">
                   🎉 Welcome! Please complete your profile to continue
                 </p>
               </div>
 
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   Full Name *
                 </label>
                 <input
@@ -312,13 +294,13 @@ const LoginPage = () => {
                   value={registrationData.name}
                   onChange={handleRegistrationChange}
                   placeholder="Enter your full name"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                  className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   Email Address *
                 </label>
                 <input
@@ -327,13 +309,13 @@ const LoginPage = () => {
                   value={registrationData.email}
                   onChange={handleRegistrationChange}
                   placeholder="Enter your email address"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                  className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   Date of Birth *
                 </label>
                 <input
@@ -341,14 +323,14 @@ const LoginPage = () => {
                   name="dob"
                   value={registrationData.dob}
                   onChange={handleRegistrationChange}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                  className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   max={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <p className="text-white/70 text-sm">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <p className="text-slate-600 text-sm">
                   <strong>Phone Number:</strong> +91 {phoneNumber}
                 </p>
               </div>
@@ -356,11 +338,11 @@ const LoginPage = () => {
               <button
                 onClick={handleRegisterUser}
                 disabled={isLoading}
-                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-500/50 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-400 disabled:cursor-not-allowed text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Creating Account...
                   </div>
                 ) : (
@@ -375,7 +357,7 @@ const LoginPage = () => {
                   setOtp("");
                   setError("");
                 }}
-                className="w-full text-white/70 hover:text-white py-3 rounded-xl font-medium transition-colors border border-white/20 hover:border-white/40"
+                className="w-full text-slate-600 hover:text-slate-800 py-3 rounded-xl font-medium transition-colors border border-blue-300 hover:border-blue-400"
               >
                 Use Different Phone Number
               </button>
@@ -384,23 +366,23 @@ const LoginPage = () => {
             /* Phone Input */
             <div className="space-y-6">
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-white/60">+91</span>
+                    <span className="text-slate-500">+91</span>
                   </div>
                   <input
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
                     placeholder="Enter your 10-digit phone number"
-                    className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm"
+                    className="w-full pl-12 pr-4 py-4 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                     maxLength={10}
                   />
                 </div>
-                <p className="text-white/50 text-xs mt-2">
+                <p className="text-slate-500 text-xs mt-2">
                   We'll send a 6-digit OTP to this number via WhatsApp
                 </p>
               </div>
@@ -408,11 +390,11 @@ const LoginPage = () => {
               <button
                 onClick={handleSendOtp}
                 disabled={isLoading || !validatePhoneNumber(phoneNumber)}
-                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-500/50 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-400 disabled:cursor-not-allowed text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Sending WhatsApp OTP...
                   </div>
                 ) : (
@@ -424,7 +406,7 @@ const LoginPage = () => {
             /* OTP Input */
             <div className="space-y-6">
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   Enter OTP
                 </label>
                 <div className="relative">
@@ -433,18 +415,18 @@ const LoginPage = () => {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="Enter 6-digit OTP"
-                    className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 backdrop-blur-sm text-center text-2xl tracking-widest"
+                    className="w-full px-4 py-4 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-center text-2xl tracking-widest"
                     maxLength={6}
                   />
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <p className="text-white/50 text-xs">
+                  <p className="text-slate-500 text-xs">
                     OTP sent to +91 {phoneNumber} via WhatsApp
                   </p>
                   <button
                     onClick={handleResendOtp}
                     disabled={countdown > 0}
-                    className="text-gold-400 hover:text-gold-300 disabled:text-gold-400/50 text-xs transition-colors"
+                    className="text-gold-500 hover:text-gold-600 disabled:text-gold-400 text-xs transition-colors"
                   >
                     {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
                   </button>
@@ -454,11 +436,11 @@ const LoginPage = () => {
               <button
                 onClick={handleVerifyOtp}
                 disabled={isLoading || otp.length !== 6}
-                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-500/50 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                className="w-full bg-gold-500 hover:bg-gold-600 disabled:bg-gold-400 disabled:cursor-not-allowed text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Verifying...
                   </div>
                 ) : (
@@ -472,7 +454,7 @@ const LoginPage = () => {
                   setOtp("");
                   setError("");
                 }}
-                className="w-full text-white/70 hover:text-white py-3 rounded-xl font-medium transition-colors border border-white/20 hover:border-white/40"
+                className="w-full text-slate-600 hover:text-slate-800 py-3 rounded-xl font-medium transition-colors border border-blue-300 hover:border-blue-400"
               >
                 Change Phone Number
               </button>
@@ -481,18 +463,18 @@ const LoginPage = () => {
 
           {/* Terms and Privacy */}
           <div className="mt-8 text-center">
-            <p className="text-white/50 text-xs">
+            <p className="text-slate-500 text-xs">
               By continuing, you agree to our{" "}
               <button 
                 onClick={() => navigate("/terms")}
-                className="text-gold-400 hover:text-gold-300 underline"
+                className="text-gold-500 hover:text-gold-600 underline"
               >
                 Terms of Service
               </button>{" "}
               and{" "}
               <button 
                 onClick={() => navigate("/privacy")}
-                className="text-gold-400 hover:text-gold-300 underline"
+                className="text-gold-500 hover:text-gold-600 underline"
               >
                 Privacy Policy
               </button>
@@ -501,33 +483,33 @@ const LoginPage = () => {
         </div>
 
         {/* Development Info */}
-        <div className="mt-8 bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-          <h3 className="text-gold-400 font-semibold mb-2 text-center">
+        <div className="mt-8 bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-lg">
+          <h3 className="text-gold-500 font-semibold mb-2 text-center">
             How It Works
           </h3>
-          <div className="text-white/70 text-sm space-y-2">
+          <div className="text-slate-600 text-sm space-y-2">
             <div className="flex items-start">
-              <span className="bg-gold-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">1</span>
+              <span className="bg-gold-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">1</span>
               <span>Enter your 10-digit phone number</span>
             </div>
             <div className="flex items-start">
-              <span className="bg-gold-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">2</span>
+              <span className="bg-gold-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">2</span>
               <span>Receive OTP via WhatsApp on your phone</span>
             </div>
             <div className="flex items-start">
-              <span className="bg-gold-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">3</span>
+              <span className="bg-gold-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">3</span>
               <span>Enter OTP to verify and login</span>
             </div>
             {vehicle && (
               <div className="flex items-start">
-                <span className="bg-green-400 text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">4</span>
-                <span className="text-green-400">Continue to book your {vehicle.name}</span>
+                <span className="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">4</span>
+                <span className="text-green-600">Continue to book your {vehicle.name}</span>
               </div>
             )}
-            <div className="text-green-400 text-xs mt-2">
+            <div className="text-green-600 text-xs mt-2">
               ✓ Real OTPs are sent via MSG91 WhatsApp service
             </div>
-            <div className="text-blue-400 text-xs">
+            <div className="text-blue-600 text-xs">
               ⚡ No DLT registration required for WhatsApp
             </div>
           </div>

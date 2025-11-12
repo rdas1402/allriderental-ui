@@ -1,3 +1,4 @@
+// components/VehicleList.js
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import car1 from "../assets/car1.jpg";
@@ -104,7 +105,7 @@ function VehicleList() {
 
   const VehicleCard = ({ vehicle }) => (
     <div 
-      className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition cursor-pointer border border-gray-100"
+      className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition cursor-pointer border border-blue-200"
       onClick={() => handleVehicleSelect(vehicle.id)}
     >
       <img 
@@ -113,17 +114,17 @@ function VehicleList() {
         className="rounded-lg mb-3 w-full h-48 object-cover"
       />
       <div className="flex justify-between items-start mb-2">
-        <h4 className="text-lg font-bold text-gray-800">{vehicle.name}</h4>
-        <span className="flex items-center bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-sm border border-yellow-200">
+        <h4 className="text-lg font-semibold text-slate-800">{vehicle.name}</h4>
+        <span className="flex items-center bg-gold-50 text-gold-700 px-2 py-1 rounded text-sm border border-gold-200">
           ⭐ {vehicle.rating}
         </span>
       </div>
-      <p className="text-gray-700 font-semibold mb-2">{vehicle.price}</p>
+      <p className="text-gold-500 font-semibold mb-2">{vehicle.price}</p>
       <div className="flex flex-wrap gap-1 mb-2">
         {vehicle.features.map((feature, index) => (
           <span 
             key={index}
-            className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs border border-blue-100"
+            className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs border border-blue-200"
           >
             {feature}
           </span>
@@ -133,37 +134,43 @@ function VehicleList() {
   );
 
   return (
-    <div className="min-h-screen bg-yellow-400 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="relative min-h-screen bg-white">
+      {/* Background Image with Light Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+        }}
+      ></div>
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
         {/* Header with Logo-inspired styling */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
+            className="flex items-center bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg transition duration-300 font-semibold border border-slate-700"
           >
             ← Back to Home
           </button>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">
-              <span className="text-blue-600">A</span>
-              <span className="text-gray-800"> RIDE</span>
-              <span className="text-blue-600"> Central</span>
+            <div className="text-2xl font-light text-slate-800">
+              <span className="font-semibold text-gold-500">All Ride</span> Central
             </div>
           </div>
           <div className="w-20"></div> {/* Spacer for balance */}
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/20">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800">
-            Available Rides in <span className="text-blue-600">{city}</span>
+        <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-8 border border-blue-200">
+          <h2 className="text-2xl md:text-3xl font-light text-center text-slate-800">
+            Available Rides in <span className="font-semibold text-gold-500">{city}</span>
           </h2>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Panel - Segmented Control */}
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6 border border-gray-100">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Vehicle Type</h3>
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 sticky top-6 border border-blue-200">
+              <h3 className="text-lg font-semibold mb-4 text-slate-800">Vehicle Type</h3>
               
               {/* Segmented Control */}
               <div className="flex flex-col space-y-3">
@@ -171,15 +178,15 @@ function VehicleList() {
                   onClick={() => setSelectedType("Car")}
                   className={`flex items-center px-4 py-3 rounded-xl transition duration-300 border ${
                     selectedType === "Car" 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                      : "bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                      ? "bg-gold-500 text-slate-900 border-gold-500 shadow-md" 
+                      : "bg-white text-slate-700 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   }`}
                 >
                   <span className="mr-3 text-xl">🚗</span>
                   <div className="text-left">
                     <div className="font-semibold">Cars</div>
                     <div className={`text-sm ${
-                      selectedType === "Car" ? "text-blue-100" : "text-gray-500"
+                      selectedType === "Car" ? "text-slate-700" : "text-slate-500"
                     }`}>
                       {VEHICLES.filter(v => v.type === "Car").length} available
                     </div>
@@ -190,15 +197,15 @@ function VehicleList() {
                   onClick={() => setSelectedType("Bike")}
                   className={`flex items-center px-4 py-3 rounded-xl transition duration-300 border ${
                     selectedType === "Bike" 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                      : "bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                      ? "bg-gold-500 text-slate-900 border-gold-500 shadow-md" 
+                      : "bg-white text-slate-700 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   }`}
                 >
                   <span className="mr-3 text-xl">🏍️</span>
                   <div className="text-left">
                     <div className="font-semibold">Bikes</div>
                     <div className={`text-sm ${
-                      selectedType === "Bike" ? "text-blue-100" : "text-gray-500"
+                      selectedType === "Bike" ? "text-slate-700" : "text-slate-500"
                     }`}>
                       {VEHICLES.filter(v => v.type === "Bike").length} available
                     </div>
@@ -207,20 +214,20 @@ function VehicleList() {
               </div>
 
               {/* Quick Stats */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="font-semibold mb-3 text-gray-700">Quick Stats</h4>
-                <div className="space-y-2 text-sm text-gray-600">
+              <div className="mt-6 pt-6 border-t border-blue-200">
+                <h4 className="font-semibold mb-3 text-slate-700">Quick Stats</h4>
+                <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex justify-between">
                     <span>Total Vehicles:</span>
-                    <span className="font-semibold text-blue-600">{VEHICLES.length}</span>
+                    <span className="font-semibold text-gold-500">{VEHICLES.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Cars:</span>
-                    <span className="font-semibold text-green-600">{VEHICLES.filter(v => v.type === "Car").length}</span>
+                    <span className="font-semibold text-blue-600">{VEHICLES.filter(v => v.type === "Car").length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Bikes:</span>
-                    <span className="font-semibold text-purple-600">{VEHICLES.filter(v => v.type === "Bike").length}</span>
+                    <span className="font-semibold text-green-600">{VEHICLES.filter(v => v.type === "Bike").length}</span>
                   </div>
                 </div>
               </div>
@@ -229,17 +236,17 @@ function VehicleList() {
 
           {/* Right Panel - Vehicle Grid */}
           <div className="lg:w-3/4">
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-6 border border-blue-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-800">
+                <h3 className="text-xl font-semibold text-slate-800">
                   {selectedType === "Car" ? "🚗" : "🏍️"} {selectedType}s 
-                  <span className="text-blue-600 ml-2">({filteredVehicles.length} available)</span>
+                  <span className="text-gold-500 ml-2">({filteredVehicles.length} available)</span>
                 </h3>
                 
                 <select 
                   value={sortOption}
                   onChange={handleSortChange}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="border border-blue-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-slate-800"
                 >
                   <option value="price-low-high">Sort by: Price (Low to High)</option>
                   <option value="price-high-low">Sort by: Price (High to Low)</option>
@@ -256,10 +263,10 @@ function VehicleList() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-gray-100">
-                <div className="text-6xl mb-4">🚫</div>
-                <p className="text-xl text-gray-600 mb-4">No {selectedType.toLowerCase()}s available in {city}</p>
-                <p className="text-gray-500">Please check back later or try a different vehicle type.</p>
+              <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg border border-blue-200">
+                <div className="text-6xl mb-4 text-slate-400">🚫</div>
+                <p className="text-xl text-slate-600 mb-4">No {selectedType.toLowerCase()}s available in {city}</p>
+                <p className="text-slate-500">Please check back later or try a different vehicle type.</p>
               </div>
             )}
           </div>
