@@ -114,12 +114,12 @@ function VehicleList() {
         className="rounded-lg mb-3 w-full h-48 object-cover"
       />
       <div className="flex justify-between items-start mb-2">
-        <h4 className="text-lg font-semibold text-slate-800">{vehicle.name}</h4>
-        <span className="flex items-center bg-gold-50 text-gold-700 px-2 py-1 rounded text-sm border border-gold-200">
+        <h4 className="text-base font-semibold text-slate-800">{vehicle.name}</h4>
+        <span className="flex items-center bg-gold-50 text-gold-700 px-2 py-1 rounded text-xs border border-gold-200">
           ⭐ {vehicle.rating}
         </span>
       </div>
-      <p className="text-gold-500 font-semibold mb-2">{vehicle.price}</p>
+      <p className="text-gold-500 font-semibold mb-2 text-sm">{vehicle.price}</p>
       <div className="flex flex-wrap gap-1 mb-2">
         {vehicle.features.map((feature, index) => (
           <span 
@@ -148,12 +148,12 @@ function VehicleList() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg transition duration-300 font-semibold border border-slate-700"
+            className="flex items-center bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg transition duration-300 font-semibold border border-slate-700 text-sm"
           >
             ← Back to Home
           </button>
           <div className="text-center">
-            <div className="text-2xl font-light text-slate-800">
+            <div className="text-xl font-light text-slate-800">
               <span className="font-semibold text-gold-500">All Ride</span> Central
             </div>
           </div>
@@ -161,7 +161,7 @@ function VehicleList() {
         </div>
 
         <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-8 border border-blue-200">
-          <h2 className="text-2xl md:text-3xl font-light text-center text-slate-800">
+          <h2 className="text-xl md:text-2xl font-light text-center text-slate-800">
             Available Rides in <span className="font-semibold text-gold-500">{city}</span>
           </h2>
         </div>
@@ -170,7 +170,7 @@ function VehicleList() {
           {/* Left Panel - Segmented Control */}
           <div className="lg:w-1/4">
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 sticky top-6 border border-blue-200">
-              <h3 className="text-lg font-semibold mb-4 text-slate-800">Vehicle Type</h3>
+              <h3 className="text-base font-semibold mb-4 text-slate-800">Vehicle Type</h3>
               
               {/* Segmented Control */}
               <div className="flex flex-col space-y-3">
@@ -184,8 +184,8 @@ function VehicleList() {
                 >
                   <span className="mr-3 text-xl">🚗</span>
                   <div className="text-left">
-                    <div className="font-semibold">Cars</div>
-                    <div className={`text-sm ${
+                    <div className="font-semibold text-sm">Cars</div>
+                    <div className={`text-xs ${
                       selectedType === "Car" ? "text-slate-700" : "text-slate-500"
                     }`}>
                       {VEHICLES.filter(v => v.type === "Car").length} available
@@ -203,8 +203,8 @@ function VehicleList() {
                 >
                   <span className="mr-3 text-xl">🏍️</span>
                   <div className="text-left">
-                    <div className="font-semibold">Bikes</div>
-                    <div className={`text-sm ${
+                    <div className="font-semibold text-sm">Bikes</div>
+                    <div className={`text-xs ${
                       selectedType === "Bike" ? "text-slate-700" : "text-slate-500"
                     }`}>
                       {VEHICLES.filter(v => v.type === "Bike").length} available
@@ -215,8 +215,8 @@ function VehicleList() {
 
               {/* Quick Stats */}
               <div className="mt-6 pt-6 border-t border-blue-200">
-                <h4 className="font-semibold mb-3 text-slate-700">Quick Stats</h4>
-                <div className="space-y-2 text-sm text-slate-600">
+                <h4 className="font-semibold mb-3 text-slate-700 text-sm">Quick Stats</h4>
+                <div className="space-y-2 text-xs text-slate-600">
                   <div className="flex justify-between">
                     <span>Total Vehicles:</span>
                     <span className="font-semibold text-gold-500">{VEHICLES.length}</span>
@@ -238,15 +238,15 @@ function VehicleList() {
           <div className="lg:w-3/4">
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-6 border border-blue-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-800">
+                <h3 className="text-lg font-semibold text-slate-800">
                   {selectedType === "Car" ? "🚗" : "🏍️"} {selectedType}s 
-                  <span className="text-gold-500 ml-2">({filteredVehicles.length} available)</span>
+                  <span className="text-gold-500 ml-2 text-sm">({filteredVehicles.length} available)</span>
                 </h3>
                 
                 <select 
                   value={sortOption}
                   onChange={handleSortChange}
-                  className="border border-blue-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-slate-800"
+                  className="border border-blue-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-slate-800"
                 >
                   <option value="price-low-high">Sort by: Price (Low to High)</option>
                   <option value="price-high-low">Sort by: Price (High to Low)</option>
@@ -265,8 +265,8 @@ function VehicleList() {
             ) : (
               <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg border border-blue-200">
                 <div className="text-6xl mb-4 text-slate-400">🚫</div>
-                <p className="text-xl text-slate-600 mb-4">No {selectedType.toLowerCase()}s available in {city}</p>
-                <p className="text-slate-500">Please check back later or try a different vehicle type.</p>
+                <p className="text-lg text-slate-600 mb-4 text-sm">No {selectedType.toLowerCase()}s available in {city}</p>
+                <p className="text-slate-500 text-sm">Please check back later or try a different vehicle type.</p>
               </div>
             )}
           </div>

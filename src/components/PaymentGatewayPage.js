@@ -5,6 +5,7 @@ import { PaymentService } from "../services/paymentService";
 import { paymentAPI } from "../services/apiService";
 import { EmailService } from "../services/emailService";
 import { SMSService } from "../services/smsService";
+import allRideRentalImage from "../assets/AllRideRental.jpg";
 
 // Import payment method images
 import upiQrCode from "../assets/qr_code.jpg";
@@ -25,6 +26,10 @@ const PaymentGatewayPage = () => {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
     // Initialize Razorpay when component mounts
     const loadRazorpay = async () => {
       const loaded = await PaymentService.initializeRazorpay();
@@ -479,29 +484,34 @@ const PaymentGatewayPage = () => {
   return (
     <div className="relative min-h-screen bg-white">
       {/* Background Image with Light Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
-        }}
-      ></div>
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Right Background Image - Inverted */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-1/2 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url(${allRideRentalImage})`,
+            backgroundPosition: "left center",
+            filter: "invert(100%)"
+          }}
+        ></div>
+      </div>
       
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 border border-blue-200 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-light text-slate-800 mb-2">
+            <h1 className="text-2xl font-light text-slate-800 mb-2">
               Complete Your Payment
             </h1>
-            <p className="text-slate-600">Secure payment for your {vehicle?.name} booking</p>
+            <p className="text-slate-600 text-sm">Secure payment for your {vehicle?.name} booking</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Side - Payment Methods */}
             <div>
               <div className="bg-blue-50 rounded-xl p-6 mb-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Booking Summary</h3>
-                <div className="space-y-3">
+                <h3 className="text-base font-semibold text-slate-800 mb-4">Booking Summary</h3>
+                <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Vehicle:</span>
                     <span className="text-slate-800 font-medium">{vehicle.name}</span>
@@ -532,12 +542,12 @@ const PaymentGatewayPage = () => {
                   </div>
                   <div className="flex justify-between pt-2 border-t border-blue-200">
                     <span className="text-slate-800 font-semibold">Total Amount:</span>
-                    <span className="text-gold-500 font-bold text-lg">₹{booking.total?.toLocaleString()}</span>
+                    <span className="text-gold-500 font-bold text-base">₹{booking.total?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">Select Payment Method</h3>
+              <h3 className="text-base font-semibold text-slate-800 mb-4">Select Payment Method</h3>
               
               {/* Payment Method Options */}
               <div className="space-y-4 mb-6">
@@ -552,8 +562,8 @@ const PaymentGatewayPage = () => {
                     className="text-gold-500 focus:ring-gold-500"
                   />
                   <div className="ml-4">
-                    <span className="text-slate-800 font-medium">Credit/Debit Card</span>
-                    <p className="text-slate-600 text-sm">Pay using card, net banking, or wallet</p>
+                    <span className="text-slate-800 font-medium text-sm">Credit/Debit Card</span>
+                    <p className="text-slate-600 text-xs">Pay using card, net banking, or wallet</p>
                   </div>
                 </label>
 
@@ -568,8 +578,8 @@ const PaymentGatewayPage = () => {
                     className="text-gold-500 focus:ring-gold-500"
                   />
                   <div className="ml-4">
-                    <span className="text-slate-800 font-medium">UPI Payment</span>
-                    <p className="text-slate-600 text-sm">Pay using UPI apps</p>
+                    <span className="text-slate-800 font-medium text-sm">UPI Payment</span>
+                    <p className="text-slate-600 text-xs">Pay using UPI apps</p>
                   </div>
                 </label>
 
@@ -584,8 +594,8 @@ const PaymentGatewayPage = () => {
                     className="text-gold-500 focus:ring-gold-500"
                   />
                   <div className="ml-4">
-                    <span className="text-slate-800 font-medium">QR Code</span>
-                    <p className="text-slate-600 text-sm">Scan and pay with any UPI app</p>
+                    <span className="text-slate-800 font-medium text-sm">QR Code</span>
+                    <p className="text-slate-600 text-xs">Scan and pay with any UPI app</p>
                   </div>
                 </label>
               </div>
@@ -593,7 +603,7 @@ const PaymentGatewayPage = () => {
               {/* Development Testing Info */}
               {process.env.NODE_ENV === 'development' && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                  <p className="text-yellow-700 text-sm text-center">
+                  <p className="text-yellow-700 text-xs text-center">
                     🚧 Development Mode: Payments will auto-succeed after 3 seconds
                   </p>
                 </div>
@@ -603,7 +613,7 @@ const PaymentGatewayPage = () => {
               {process.env.NODE_ENV === 'development' && (
                 <button
                   onClick={handleMockPayment}
-                  className="w-full mt-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                  className="w-full mt-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg text-sm"
                 >
                   Test Mock Payment (Dev Only)
                 </button>
@@ -615,7 +625,7 @@ const PaymentGatewayPage = () => {
               {/* Payment Method Specific UI */}
               {paymentMethod === "qr" && (
                 <div className="bg-white border-2 border-blue-300 rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 text-center">
+                  <h4 className="text-base font-semibold text-slate-800 mb-4 text-center">
                     Scan QR Code to Pay
                   </h4>
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gold-300 mx-auto w-48 h-48 flex items-center justify-center mb-4">
@@ -626,7 +636,7 @@ const PaymentGatewayPage = () => {
                     />
                   </div>
                   <div className="text-center">
-                    <p className="text-slate-600 text-sm mb-2">Amount: ₹{booking.total?.toLocaleString()}</p>
+                    <p className="text-slate-600 text-xs mb-2">Amount: ₹{booking.total?.toLocaleString()}</p>
                     <p className="text-slate-500 text-xs">UPI ID: allriderental@upi</p>
                     <p className="text-slate-400 text-xs mt-2">Scan with any UPI app to pay</p>
                   </div>
@@ -642,17 +652,17 @@ const PaymentGatewayPage = () => {
 
               {paymentMethod === "razorpay" && (
                 <div className="bg-white border-2 border-blue-300 rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4">Secure Payment</h4>
+                  <h4 className="text-base font-semibold text-slate-800 mb-4">Secure Payment</h4>
                   <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                    <p className="text-slate-600 text-sm text-center">
+                    <p className="text-slate-600 text-xs text-center">
                       You'll be redirected to Razorpay's secure payment gateway to complete your payment
                     </p>
                   </div>
                   
                   {/* Payment Amount Display */}
                   <div className="text-center mb-6">
-                    <p className="text-slate-600 text-sm">Amount to pay:</p>
-                    <p className="text-gold-500 font-bold text-2xl mt-2">₹{booking.total?.toLocaleString()}</p>
+                    <p className="text-slate-600 text-xs">Amount to pay:</p>
+                    <p className="text-gold-500 font-bold text-xl mt-2">₹{booking.total?.toLocaleString()}</p>
                   </div>
                   
                   {/* Card Logos */}
@@ -666,17 +676,17 @@ const PaymentGatewayPage = () => {
 
               {paymentMethod === "upi" && (
                 <div className="bg-white border-2 border-blue-300 rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4">UPI Payment</h4>
+                  <h4 className="text-base font-semibold text-slate-800 mb-4">UPI Payment</h4>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                    <p className="text-yellow-700 text-sm text-center">
+                    <p className="text-yellow-700 text-xs text-center">
                       You'll be redirected to your UPI app for payment confirmation
                     </p>
                   </div>
                   
                   {/* Payment Amount Display */}
                   <div className="text-center mb-6">
-                    <p className="text-slate-600 text-sm">Amount to pay:</p>
-                    <p className="text-gold-500 font-bold text-2xl mt-2">₹{booking.total?.toLocaleString()}</p>
+                    <p className="text-slate-600 text-xs">Amount to pay:</p>
+                    <p className="text-gold-500 font-bold text-xl mt-2">₹{booking.total?.toLocaleString()}</p>
                   </div>
                   
                   {/* UPI App Logos */}
@@ -696,14 +706,14 @@ const PaymentGatewayPage = () => {
               <button
                 onClick={handlePayment}
                 disabled={isProcessing || !razorpayLoaded}
-                className={`w-full mt-6 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg ${
+                className={`w-full mt-6 py-4 rounded-xl font-semibold text-base transition-all duration-300 shadow-lg ${
                   isProcessing || !razorpayLoaded
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'bg-gold-500 hover:bg-gold-600 text-slate-900 hover:scale-105'
                 }`}
               >
                 {isProcessing ? (
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center text-sm">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-3"></div>
                     Processing Payment...
                   </div>
@@ -716,7 +726,7 @@ const PaymentGatewayPage = () => {
 
               {/* Security Notice */}
               <div className="mt-4 text-center">
-                <div className="flex items-center justify-center text-green-500 text-sm mb-2">
+                <div className="flex items-center justify-center text-green-500 text-xs mb-2">
                   <span className="mr-2">🔒</span>
                   <span>Secure SSL Encrypted Payment</span>
                 </div>
@@ -730,7 +740,7 @@ const PaymentGatewayPage = () => {
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="mt-6 bg-blue-50 hover:bg-blue-100 text-slate-700 px-6 py-3 rounded-xl font-semibold transition-colors border border-blue-300"
+            className="mt-6 bg-blue-50 hover:bg-blue-100 text-slate-700 px-6 py-3 rounded-xl font-semibold transition-colors border border-blue-300 text-sm"
           >
             ← Back to Booking
           </button>

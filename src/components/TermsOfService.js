@@ -1,7 +1,18 @@
 // components/TermsOfService.js
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const TermsOfService = () => {
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [navigate]);
+
   return (
     <div className="relative min-h-screen bg-white">
       {/* Background Image with Light Overlay */}
@@ -14,22 +25,22 @@ const TermsOfService = () => {
       
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-8 border border-blue-200">
-          <h1 className="text-3xl font-light text-slate-800 mb-2">
+          <h1 className="text-2xl font-light text-slate-800 mb-2">
             Terms of <span className="font-semibold text-gold-500">Service</span>
           </h1>
-          <div className="prose prose-lg text-slate-600">
-            <p className="mb-4">
+          <div className="prose prose-sm text-slate-600">
+            <p className="mb-4 text-sm">
               Welcome to All Ride Rental. By using our services, you agree to comply with and be bound by the following terms and conditions.
             </p>
-            <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">Rental Agreement</h2>
-            <ul className="list-disc list-inside space-y-2 mb-4">
+            <h2 className="text-lg font-semibold text-slate-800 mt-6 mb-3">Rental Agreement</h2>
+            <ul className="list-disc list-inside space-y-2 mb-4 text-sm">
               <li>Minimum age requirement: 21 years</li>
               <li>Valid driving license required</li>
               <li>Security deposit applicable</li>
               <li>Fuel policy: Same as received</li>
             </ul>
-            <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">Vehicle Usage</h2>
-            <p>Vehicles must be used in accordance with local laws and regulations. Any illegal activities are strictly prohibited.</p>
+            <h2 className="text-lg font-semibold text-slate-800 mt-6 mb-3">Vehicle Usage</h2>
+            <p className="text-sm">Vehicles must be used in accordance with local laws and regulations. Any illegal activities are strictly prohibited.</p>
           </div>
         </div>
       </div>

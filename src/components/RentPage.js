@@ -1,46 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { vehiclesAPI, bookingsAPI } from "../services/apiService";
+import allRideRentalImage from "../assets/AllRideRental.jpg";
+import { useCity } from "../context/CityContext";
 
 const RentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
   const queryParams = new URLSearchParams(location.search);
   const initialType = queryParams.get("type") === "bike" ? "Bike" : "Car";
   
-  const [selectedCity, setSelectedCity] = useState("All Cities");
+  // USE CityContext instead of localStorage
+  const { selectedCity } = useCity();
+  
   const [selectedType, setSelectedType] = useState(initialType);
-  const [cities, setCities] = useState(["All Cities"]);
   const [allVehicles, setAllVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [citiesLoading, setCitiesLoading] = useState(true);
+  const [displayedVehicles, setDisplayedVehicles] = useState([]); // NEW: For smooth transitions
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false); // NEW: Filtering state
   const [error, setError] = useState("");
-  const [citiesError, setCitiesError] = useState("");
   const [vehiclesError, setVehiclesError] = useState("");
   const [sortOption, setSortOption] = useState("recommended");
-
-  // Fetch cities from Java API using API service
-  const fetchCities = async () => {
-    try {
-      setCitiesLoading(true);
-      setCitiesError("");
-      
-      const citiesData = await vehiclesAPI.getAvailableCitiesForRent();
-      setCities(["All Cities", ...citiesData]);
-      
-    } catch (err) {
-      console.error('Error fetching cities for rent:', err);
-      setCitiesError(err.message || "Failed to load cities");
-      setCities([]);
-    } finally {
-      setCitiesLoading(false);
-    }
-  };
+  
+  // Refs to track previous values for comparison
+  const prevSelectedCityRef = useRef(selectedCity);
+  const prevSelectedTypeRef = useRef(selectedType);
+  const prevSortOptionRef = useRef(sortOption);
 
   // Fetch all vehicles from Java API using API service
-  const fetchAllVehicles = async () => {
+  const fetchAllVehicles = useCallback(async () => {
     try {
       setVehiclesLoading(true);
       setVehiclesError("");
@@ -55,10 +46,17 @@ const RentPage = () => {
     } finally {
       setVehiclesLoading(false);
     }
-  };
+  }, []);
+
+  // Helper function to extract numeric price from string
+  const extractPrice = useCallback((priceString) => {
+    if (!priceString) return 0;
+    const priceMatch = priceString.match(/\d+/);
+    return priceMatch ? parseInt(priceMatch[0]) : 0;
+  }, []);
 
   // Sort vehicles based on selected option
-  const sortVehicles = (vehicles, option) => {
+  const sortVehicles = useCallback((vehicles, option) => {
     const sortedVehicles = [...vehicles];
     
     switch (option) {
@@ -83,17 +81,29 @@ const RentPage = () => {
       default:
         return sortedVehicles;
     }
-  };
+  }, [extractPrice]);
 
-  // Helper function to extract numeric price from string
-  const extractPrice = (priceString) => {
-    const priceMatch = priceString.match(/\d+/);
-    return priceMatch ? parseInt(priceMatch[0]) : 0;
-  };
+  // Smooth filter and sort function with animation
+  const filterAndSortVehiclesSmooth = useCallback(() => {
+    if (allVehicles.length === 0) {
+      setFilteredVehicles([]);
+      setDisplayedVehicles([]);
+      return;
+    }
 
-  // Filter and sort vehicles based on selected city, type, and sort option
-  useEffect(() => {
-    if (allVehicles.length === 0) return;
+    // Only show filtering indicator if actually changing
+    const cityChanged = prevSelectedCityRef.current !== selectedCity;
+    const typeChanged = prevSelectedTypeRef.current !== selectedType;
+    const sortChanged = prevSortOptionRef.current !== sortOption;
+    
+    if (cityChanged || typeChanged || sortChanged) {
+      setIsFiltering(true);
+    }
+
+    // Update refs
+    prevSelectedCityRef.current = selectedCity;
+    prevSelectedTypeRef.current = selectedType;
+    prevSortOptionRef.current = sortOption;
 
     let filtered = allVehicles.filter(vehicle => vehicle.type === selectedType);
     
@@ -103,20 +113,25 @@ const RentPage = () => {
     
     const sortedAndFiltered = sortVehicles(filtered, sortOption);
     setFilteredVehicles(sortedAndFiltered);
-  }, [selectedCity, selectedType, allVehicles, sortOption]);
+    
+    // Smooth transition to new vehicles
+    setTimeout(() => {
+      setDisplayedVehicles(sortedAndFiltered);
+      setIsFiltering(false);
+    }, 200); // Small delay for smooth transition
+  }, [allVehicles, selectedType, selectedCity, sortOption, sortVehicles]);
 
   // Handle sort option change
   const handleSortChange = (e) => {
     setSortOption(e.target.value);
   };
 
-  // Calculate counts based on API data
-  const carsCount = allVehicles.filter(vehicle => vehicle.type === "Car").length;
-  const bikesCount = allVehicles.filter(vehicle => vehicle.type === "Bike").length;
-  const totalCount = allVehicles.length;
+  // Calculate counts for selected city
+  const cityCounts = useMemo(() => {
+    const carsCount = allVehicles.filter(vehicle => vehicle.type === "Car").length;
+    const bikesCount = allVehicles.filter(vehicle => vehicle.type === "Bike").length;
+    const totalCount = allVehicles.length;
 
-  // Get counts for selected city
-  const getCitySpecificCounts = () => {
     if (!selectedCity || selectedCity === "All Cities") {
       return {
         cars: carsCount,
@@ -131,14 +146,22 @@ const RentPage = () => {
       bikes: cityVehicles.filter(v => v.type === "Bike").length,
       total: cityVehicles.length
     };
-  };
+  }, [selectedCity, allVehicles]);
 
-  const cityCounts = getCitySpecificCounts();
-
+  // Initial data fetch
   useEffect(() => {
-    fetchCities();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    
     fetchAllVehicles();
-  }, []);
+  }, [fetchAllVehicles]);
+
+  // Update filtered vehicles when dependencies change
+  useEffect(() => {
+    filterAndSortVehiclesSmooth();
+  }, [filterAndSortVehiclesSmooth]);
 
   // Enhanced handleBookNow with availability check
   const handleBookNow = async (vehicle) => {
@@ -179,16 +202,12 @@ const RentPage = () => {
     }
   };
 
-  // Vehicle Card Component with Availability Status
-  const VehicleCard = ({ vehicle }) => {
+  // Vehicle Card Component
+  const VehicleCard = React.memo(({ vehicle }) => {
     const [isAvailable, setIsAvailable] = useState(true);
     const [checkingAvailability, setCheckingAvailability] = useState(false);
 
-    useEffect(() => {
-      checkAvailability();
-    }, [vehicle]);
-
-    const checkAvailability = async () => {
+    const checkAvailability = useCallback(async () => {
       try {
         setCheckingAvailability(true);
         const today = new Date().toISOString().split('T')[0];
@@ -207,64 +226,68 @@ const RentPage = () => {
       } finally {
         setCheckingAvailability(false);
       }
-    };
+    }, [vehicle.id]);
+
+    useEffect(() => {
+      checkAvailability();
+    }, [checkAvailability]);
 
     return (
-      <div className={`bg-white/95 backdrop-blur-lg rounded-2xl p-6 border transition-all duration-300 hover:translate-y-[-4px] group shadow-lg ${
+      <div className={`bg-white/95 backdrop-blur-lg rounded-xl p-4 border transition-all duration-300 hover:translate-y-[-2px] group shadow-md ${
         isAvailable 
-          ? "border-blue-200 hover:border-gold-400 hover:shadow-xl" 
+          ? "border-blue-200 hover:border-gold-400 hover:shadow-lg" 
           : "border-red-300 hover:border-red-400"
       }`}>
         <div 
-          className="h-48 bg-cover bg-center rounded-xl mb-4 relative"
+          className="h-32 bg-cover bg-center rounded-lg mb-3 relative"
           style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
         >
-          <div className={`absolute inset-0 rounded-xl ${
+          <div className={`absolute inset-0 rounded-lg ${
             isAvailable 
               ? "bg-black/20 group-hover:bg-black/10" 
               : "bg-red-900/40 group-hover:bg-red-900/30"
           } transition-all duration-300`}></div>
           
           {/* Availability Badge */}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-2 right-2">
             {checkingAvailability ? (
-              <span className="bg-gray-500/90 text-white text-xs font-semibold px-2 py-1 rounded flex items-center">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-white mr-1"></div>
+              <span className="bg-gray-500/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded flex items-center">
+                <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-white mr-1"></div>
                 Checking
               </span>
             ) : isAvailable ? (
-              <span className="bg-green-500/90 text-white text-xs font-semibold px-2 py-1 rounded">
-                ✅ Available
+              <span className="bg-green-500/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
+                ✅
               </span>
             ) : (
-              <span className="bg-red-500/90 text-white text-xs font-semibold px-2 py-1 rounded">
-                ❌ Unavailable
+              <span className="bg-red-500/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
+                ❌
               </span>
             )}
           </div>
           
-          <div className="absolute bottom-3 left-3">
-            <span className="bg-gold-500/90 text-white text-xs font-semibold px-2 py-1 rounded">
+          <div className="absolute bottom-2 left-2">
+            <span className="bg-gold-500/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
               📍 {vehicle.city}
             </span>
           </div>
         </div>
         
-        <div className="flex justify-between items-start mb-3">
-          <h4 className="text-lg font-semibold text-slate-800 group-hover:text-gold-500 transition-colors">
+        <div className="flex justify-between items-start mb-2">
+          <h4 className="text-sm font-semibold text-slate-800 group-hover:text-gold-500 transition-colors line-clamp-1">
             {vehicle.name}
           </h4>
-          <span className="flex items-center bg-gold-100 text-gold-700 px-2 py-1 rounded text-sm border border-gold-300">
+          <span className="flex items-center bg-gold-100 text-gold-700 px-1.5 py-0.5 rounded text-xs border border-gold-300">
             ⭐ {vehicle.rating}
           </span>
         </div>
         
-        <p className="text-gold-500 font-semibold text-lg mb-3">
+        <p className="text-gold-500 font-semibold text-sm mb-2">
           {vehicle.rentPrice || vehicle.price}
         </p>
         
-        <div className="flex flex-wrap gap-1 mb-4">
-          {vehicle.features && vehicle.features.map((featureObj, index) => {
+        <div className="flex flex-wrap gap-1 mb-3">
+          {vehicle.features && vehicle.features.slice(0, 2).map((featureObj, index) => {
             let featureText = '';
             
             if (typeof featureObj === 'string') {
@@ -281,83 +304,98 @@ const RentPage = () => {
             return (
               <span 
                 key={featureObj.id || index}
-                className="bg-blue-50 text-slate-700 px-2 py-1 rounded text-xs border border-blue-200"
+                className="bg-blue-50 text-slate-700 px-1.5 py-0.5 rounded text-xs border border-blue-200 line-clamp-1"
               >
-                {featureText}
+                {featureText.length > 15 ? featureText.substring(0, 15) + '...' : featureText}
               </span>
             );
           })}
+          {vehicle.features && vehicle.features.length > 2 && (
+            <span className="bg-blue-50 text-slate-700 px-1.5 py-0.5 rounded text-xs border border-blue-200">
+              +{vehicle.features.length - 2}
+            </span>
+          )}
         </div>
         
         <button 
           onClick={() => handleBookNow(vehicle)}
           disabled={!isAvailable || checkingAvailability}
-          className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
+          className={`w-full py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-md text-xs ${
             isAvailable && !checkingAvailability
               ? "bg-gold-500 hover:bg-gold-600 text-white"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >
-          {checkingAvailability ? "Checking Availability..." : 
-           isAvailable ? "Book Now" : "Currently Unavailable"}
+          {checkingAvailability ? "Checking..." : 
+           isAvailable ? "Book Now" : "Unavailable"}
         </button>
       </div>
     );
-  };
+  });
 
   // Retry failed API calls
   const retryAPICalls = () => {
-    setCitiesError("");
     setVehiclesError("");
-    fetchCities();
     fetchAllVehicles();
   };
 
   return (
     <div className="relative min-h-screen">
       {/* Background Image with Lighter Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
-        }}
-      ></div>
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Right Background Image - Inverted */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-1/2 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url(${allRideRentalImage})`,
+            backgroundPosition: "left center",
+            filter: "invert(100%)"
+          }}
+        ></div>
+      </div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-light text-slate-800 mb-4">
+          <h1 className="text-4xl font-light text-slate-800 mb-4">
             All Ride <span className="font-semibold text-gold-500">Rental</span>
           </h1>
-          <div className="text-2xl font-light text-gold-500 mb-4">
+          <div className="text-xl font-light text-gold-500 mb-4">
             {selectedType === "Car" ? "Premium Car Collection" : "Adventure Bike Fleet"}
           </div>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-600 text-base max-w-2xl mx-auto">
             {selectedType === "Car" 
               ? "Discover our curated selection of luxury and performance vehicles" 
               : "Explore our range of premium motorcycles for the ultimate riding experience"
             }
           </p>
+          
+          {/* Current Location Badge */}
+          {selectedCity && selectedCity !== "All Cities" && (
+            <div className="inline-flex items-center bg-blue-50 border border-blue-200 rounded-full px-4 py-2 mt-4">
+              <span className="text-blue-600 text-sm mr-2">📍</span>
+              <span className="text-blue-700 text-sm font-medium">Currently viewing vehicles in <strong>{selectedCity}</strong></span>
+            </div>
+          )}
         </div>
 
         {/* Error Messages */}
-        {(citiesError || vehiclesError || error) && (
+        {(vehiclesError || error) && (
           <div className="bg-white/95 backdrop-blur-lg border border-red-200 rounded-2xl p-6 mb-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-red-700 mb-2">Connection Issues</h3>
-                <div className="space-y-1 text-red-600">
-                  {citiesError && <p>🚨 Cities: {citiesError}</p>}
+                <h3 className="text-base font-semibold text-red-700 mb-2">Connection Issues</h3>
+                <div className="space-y-1 text-red-600 text-sm">
                   {vehiclesError && <p>🚨 Vehicles: {vehiclesError}</p>}
                   {error && <p>🚨 Booking: {error}</p>}
                 </div>
-                <p className="text-red-600 text-sm mt-2">
+                <p className="text-red-600 text-xs mt-2">
                   Please check your internet connection and ensure the backend server is running
                 </p>
               </div>
               <button
                 onClick={retryAPICalls}
-                className="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
               >
                 Retry
               </button>
@@ -365,59 +403,11 @@ const RentPage = () => {
           </div>
         )}
 
-        {/* City Selection */}
-        <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-blue-200 shadow-lg">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-800">
-                {selectedCity === "All Cities" 
-                  ? "Available Across All Locations" 
-                  : `Available in ${selectedCity}`
-                }
-              </h2>
-              <p className="text-slate-600 mt-2">
-                {selectedCity === "All Cities"
-                  ? "Browse our complete premium fleet"
-                  : `Exploring vehicles in ${selectedCity}`
-                }
-              </p>
-            </div>
-            <div className="flex-1 max-w-md">
-              {citiesLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold-500"></div>
-                  <span className="ml-3 text-slate-600">Loading cities...</span>
-                </div>
-              ) : citiesError ? (
-                <div className="text-center p-4 border border-red-300 rounded-xl bg-red-50">
-                  <span className="text-red-600">Failed to load cities</span>
-                </div>
-              ) : (
-                <select id="city-select"
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="w-full p-4 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-slate-800"
-                >
-                  {cities.map((city, index) => (
-                    <option 
-                      key={index} 
-                      value={city} 
-                      className="text-slate-800"
-                    >
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Panel */}
           <div className="lg:w-1/4">
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 sticky top-6 border border-blue-200 shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-slate-800">Vehicle Type</h3>
+              <h3 className="text-base font-semibold mb-4 text-slate-800">Vehicle Type</h3>
               <div className="flex flex-col space-y-3">
                 <button
                   onClick={() => setSelectedType("Car")}
@@ -429,8 +419,8 @@ const RentPage = () => {
                 >
                   <span className="mr-3 text-xl">🚗</span>
                   <div className="text-left">
-                    <div className="font-semibold">Premium Cars</div>
-                    <div className={`text-sm ${
+                    <div className="font-semibold text-sm">Premium Cars</div>
+                    <div className={`text-xs ${
                       selectedType === "Car" ? "text-gold-600" : "text-slate-600"
                     }`}>
                       {vehiclesError ? "Error loading" : `${cityCounts.cars} available`}
@@ -449,8 +439,8 @@ const RentPage = () => {
                 >
                   <span className="mr-3 text-xl">🏍️</span>
                   <div className="text-left">
-                    <div className="font-semibold">Adventure Bikes</div>
-                    <div className={`text-sm ${
+                    <div className="font-semibold text-sm">Adventure Bikes</div>
+                    <div className={`text-xs ${
                       selectedType === "Bike" ? "text-gold-600" : "text-slate-600"
                     }`}>
                       {vehiclesError ? "Error loading" : `${cityCounts.bikes} available`}
@@ -462,13 +452,13 @@ const RentPage = () => {
 
               {/* Quick Stats */}
               <div className="mt-6 pt-6 border-t border-blue-300">
-                <h4 className="font-semibold mb-3 text-slate-800">Fleet Overview</h4>
+                <h4 className="font-semibold mb-3 text-slate-800 text-sm">Fleet Overview</h4>
                 {vehiclesError ? (
-                  <div className="text-center py-4 text-red-600">
+                  <div className="text-center py-4 text-red-600 text-sm">
                     <p>Failed to load statistics</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 text-sm text-slate-600">
+                  <div className="space-y-2 text-xs text-slate-600">
                     <div className="flex justify-between">
                       <span>Total Vehicles:</span>
                       <span className="font-semibold text-gold-500">{cityCounts.total}</span>
@@ -497,17 +487,25 @@ const RentPage = () => {
 
           {/* Right Panel */}
           <div className="lg:w-3/4">
-            {/* Vehicle Header */}
+            {/* Vehicle Header with Filtering Indicator */}
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-blue-200 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-800">
-                    {selectedType === "Car" ? "🚗 Premium Cars" : "🏍️ Adventure Bikes"}
-                    <span className="text-gold-500 ml-2">
-                      {vehiclesError ? "(Error)" : `(${filteredVehicles.length} available)`}
-                    </span>
-                  </h3>
-                  <p className="text-slate-600 mt-1">
+                  <div className="flex items-center">
+                    <h3 className="text-lg font-semibold text-slate-800">
+                      {selectedType === "Car" ? "🚗 Premium Cars" : "🏍️ Adventure Bikes"}
+                      <span className="text-gold-500 ml-2 text-sm">
+                        {vehiclesError ? "(Error)" : `(${displayedVehicles.length} available)`}
+                      </span>
+                    </h3>
+                    {isFiltering && (
+                      <div className="ml-3 flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gold-500 mr-2"></div>
+                        <span className="text-xs text-gold-600">Filtering...</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-slate-600 mt-1 text-sm">
                     {vehiclesError 
                       ? "Unable to load vehicle data. Please check your connection."
                       : selectedType === "Car" 
@@ -522,7 +520,7 @@ const RentPage = () => {
                   <select 
                     value={sortOption}
                     onChange={handleSortChange}
-                    className="bg-white border border-blue-300 rounded-xl px-4 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                    className="bg-white border border-blue-300 rounded-xl px-4 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
                   >
                     <option value="recommended" className="text-slate-800">Sort by: Recommended</option>
                     <option value="price-low-high" className="text-slate-800">Sort by: Price (Low to High)</option>
@@ -533,20 +531,20 @@ const RentPage = () => {
               </div>
             </div>
 
-            {/* Vehicle Grid */}
+            {/* Vehicle Grid with Smooth Transition */}
             {vehiclesLoading ? (
               <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mx-auto mb-4"></div>
-                <p className="text-slate-600">Loading premium vehicles...</p>
+                <p className="text-slate-600 text-sm">Loading premium vehicles...</p>
               </div>
             ) : vehiclesError ? (
               <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
                 <div className="text-6xl mb-4 text-red-400">⚠️</div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">Unable to Load Vehicles</h3>
-                <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Unable to Load Vehicles</h3>
+                <p className="text-slate-600 mb-6 max-w-md mx-auto text-sm">
                   {vehiclesError}
                 </p>
-                <div className="space-y-3 text-slate-500 text-sm">
+                <div className="space-y-3 text-slate-500 text-xs">
                   <p>🔍 Please check if:</p>
                   <ul className="space-y-1">
                     <li>• Backend server is running properly</li>
@@ -556,28 +554,32 @@ const RentPage = () => {
                 </div>
                 <button
                   onClick={retryAPICalls}
-                  className="mt-6 bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  className="mt-6 bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm"
                 >
                   Try Again
                 </button>
               </div>
-            ) : filteredVehicles.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredVehicles.map((vehicle) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                ))}
-              </div>
-            ) : selectedCity && selectedCity !== "All Cities" ? (
-              <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
-                <div className="text-6xl mb-4 text-slate-400">🚫</div>
-                <p className="text-xl text-slate-800 mb-4">No {selectedType.toLowerCase()}s available in {selectedCity}</p>
-                <p className="text-slate-600">Please try a different city or explore our other vehicle types.</p>
-              </div>
             ) : (
-              <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
-                <div className="text-6xl mb-4 text-slate-400">🏙️</div>
-                <p className="text-xl text-slate-800 mb-4">Select a city to explore our premium fleet</p>
-                <p className="text-slate-600">Choose from the dropdown above to discover available vehicles.</p>
+              <div className={`transition-opacity duration-300 ${isFiltering ? 'opacity-70' : 'opacity-100'}`}>
+                {displayedVehicles.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {displayedVehicles.map((vehicle) => (
+                      <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                    ))}
+                  </div>
+                ) : selectedCity && selectedCity !== "All Cities" ? (
+                  <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
+                    <div className="text-6xl mb-4 text-slate-400">🚫</div>
+                    <p className="text-lg text-slate-800 mb-4 text-sm">No {selectedType.toLowerCase()}s available in {selectedCity}</p>
+                    <p className="text-slate-600 text-sm">Please try a different city or explore our other vehicle types.</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-white/95 backdrop-blur-lg rounded-2xl border border-blue-200 shadow-lg">
+                    <div className="text-6xl mb-4 text-slate-400">🏙️</div>
+                    <p className="text-lg text-slate-800 mb-4 text-sm">Select a city to explore our premium fleet</p>
+                    <p className="text-slate-600 text-sm">Choose from the dropdown above to discover available vehicles.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

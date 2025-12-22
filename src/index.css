@@ -4,4 +4,145 @@
 
 body {
   font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+}
+
+/* Floating Coupon Styles */
+.floating-coupon {
+  position: fixed;
+  left: 1rem;
+  bottom: 2rem;
+  z-index: 9999;
+  transition: all 0.3s ease;
+}
+
+.floating-coupon.closed {
+  transform: translateX(-120%);
+  opacity: 0;
+}
+
+.coupon-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  width: 300px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 10000;
+}
+
+.coupon-tooltip.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.coupon-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  border-width: 8px;
+  border-style: solid;
+  border-color: white transparent transparent transparent;
+}
+
+/* Mobile Responsive Styles - Added for mobile browser fixes */
+@media (max-width: 768px) {
+  .mobile-container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-x: hidden;
+  }
+  
+  .mobile-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.75rem;
+  }
+  
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  /* Prevent horizontal scrolling in hero section */
+  .hero-section {
+    overflow-x: hidden;
+  }
+  
+  /* Mobile-specific text sizes */
+  .mobile-hero-title {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .mobile-hero-subtitle {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Mobile grid adjustments */
+  .mobile-services-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  .mobile-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+  
+  /* Mobile button adjustments */
+  .mobile-button {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Mobile floating coupon */
+  .floating-coupon {
+    left: 0.5rem;
+    bottom: 1rem;
+  }
+
+  .coupon-tooltip {
+    width: 280px;
+    left: -100px;
+  }
+
+  .coupon-tooltip::after {
+    left: 110px;
+  }
+}
+
+/* Prevent horizontal scrolling globally */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure images don't cause overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

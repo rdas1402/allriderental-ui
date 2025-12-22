@@ -1,12 +1,16 @@
-// components/BookingPage.js
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { bookingsAPI } from "../services/apiService";
+import { bookingsAPI, couponsAPI } from "../services/apiService";
+import allRideRentalImage from "../assets/AllRideRental.jpg";
 
 const BookingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const vehicle = location.state?.vehicle;
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState("");
+
   
   const [userData, setUserData] = useState(null);
   const [bookingData, setBookingData] = useState({
@@ -41,6 +45,11 @@ const BookingPage = () => {
   };
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const userPhone = localStorage.getItem("userPhone");
@@ -231,6 +240,38 @@ const BookingPage = () => {
     return 'Vehicle unavailable';
   };
 
+  // Coupon validation function
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+  
+    try {
+      const bookingDetails = {
+        vehicleType: vehicle.type,
+        vehicleId: vehicle.id,
+        city: vehicle.city,
+        totalAmount: costBreakdown.total,
+        isSubscription: false // or true for subscription page
+      };
+  
+      // Use the real API call - no more hardcoded validation
+      const validationResult = await couponsAPI.validateCoupon(couponCode, bookingDetails);
+      
+      if (validationResult.valid) {
+        setAppliedCoupon(validationResult.coupon);
+        setCouponError("");
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(validationResult.message || "Invalid coupon");
+      }
+    } catch (error) {
+      console.error("Error validating coupon:", error);
+      setCouponError("Unable to validate coupon. Please try again.");
+    }
+  };
+
   const calculateTotal = () => {
     // Default values when no dates are selected
     if (!bookingData.startDate || !bookingData.endDate) {
@@ -239,6 +280,8 @@ const BookingPage = () => {
         insuranceCost: 0,
         additionalDriverCost: 0,
         convenienceFee: 0,
+        discount: 0,
+        subtotal: 0,
         total: 0
       };
     }
@@ -269,14 +312,54 @@ const BookingPage = () => {
     // Calculate convenience fee (3% of base rate)
     const convenienceFee = Math.round(baseRate * 0.03);
     
-    const total = baseRate + insuranceCost + additionalDriverCost + convenienceFee;
+    // Calculate subtotal before discount
+    const subtotal = baseRate + insuranceCost + additionalDriverCost + convenienceFee;
+    
+    // Apply coupon discount if available
+    let discount = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.discountType === 'percentage') {
+        // Percentage discount
+        discount = (subtotal * appliedCoupon.discountValue) / 100;
+        
+        // Apply maximum discount limit if specified
+        if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
+          discount = appliedCoupon.maxDiscount;
+        }
+        
+        // Ensure discount doesn't exceed minimum amount requirement
+        if (appliedCoupon.minAmount && subtotal < appliedCoupon.minAmount) {
+          discount = 0;
+        }
+      } else {
+        // Fixed amount discount
+        discount = appliedCoupon.discountValue;
+        
+        // Ensure minimum amount requirement is met
+        if (appliedCoupon.minAmount && subtotal < appliedCoupon.minAmount) {
+          discount = 0;
+        }
+        
+        // Ensure discount doesn't exceed subtotal
+        if (discount > subtotal) {
+          discount = subtotal;
+        }
+      }
+    }
+    
+    // Calculate final total
+    const total = Math.max(0, subtotal - discount);
     
     return {
+      days,
       baseRate,
       insuranceCost,
       additionalDriverCost,
       convenienceFee,
-      total
+      subtotal,
+      discount,
+      total,
+      pricePerDay
     };
   };
 
@@ -397,7 +480,7 @@ const BookingPage = () => {
   if (!vehicle || !userData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-slate-600">Loading...</div>
+        <div className="text-slate-600 text-sm">Loading...</div>
       </div>
     );
   }
@@ -405,33 +488,38 @@ const BookingPage = () => {
   return (
     <div className="relative min-h-screen bg-white">
       {/* Background Image with Light Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
-        }}
-      ></div>
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Right Background Image - Inverted */}
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-1/2 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url(${allRideRentalImage})`,
+            backgroundPosition: "right center",
+            filter: "invert(100%)"
+          }}
+        ></div>
+      </div>
       
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Side - Booking Form */}
           <div className="lg:w-2/3">
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 border border-blue-200 shadow-2xl">
-              <h1 className="text-3xl font-light text-slate-800 mb-2">
+              <h1 className="text-2xl font-light text-slate-800 mb-2">
                 Book Your <span className="font-semibold text-gold-500">{vehicle.name}</span>
               </h1>
-              <p className="text-slate-600 mb-8">Complete your booking details</p>
+              <p className="text-slate-600 mb-8 text-sm">Complete your booking details</p>
 
               {error && (
                 <div className="bg-red-500/20 border border-red-300 rounded-xl p-4 mb-6">
-                  <p className="text-red-700 text-center">{error}</p>
+                  <p className="text-red-700 text-center text-sm">{error}</p>
                 </div>
               )}
 
               {/* Loading State for Date Availability Check */}
               {isFetchingBookings && (
                 <div className="bg-blue-500/20 border border-blue-300 rounded-xl p-4 mb-6">
-                  <div className="flex items-center justify-center text-blue-700">
+                  <div className="flex items-center justify-center text-blue-700 text-sm">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-3"></div>
                     <span>Checking vehicle availability...</span>
                   </div>
@@ -441,7 +529,7 @@ const BookingPage = () => {
               {/* Availability Notice - Show if there are blocked dates */}
               {!isFetchingBookings && blockedDates.length > 0 && (
                 <div className="bg-blue-500/20 border border-blue-300 rounded-xl p-4 mb-6">
-                  <p className="text-blue-700 text-center text-sm">
+                  <p className="text-blue-700 text-center text-xs">
                     📅 Some dates are blocked due to existing bookings or manual unavailability.
                   </p>
                 </div>
@@ -450,7 +538,7 @@ const BookingPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Pickup Date */}
                 <div>
-                  <label className="block text-slate-700 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-xs font-medium mb-2">
                     Pickup Date *
                   </label>
                   <input
@@ -459,7 +547,7 @@ const BookingPage = () => {
                     value={bookingData.startDate}
                     onChange={handleDateChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${
+                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm ${
                       bookingData.startDate && isDateBlocked(bookingData.startDate) 
                         ? 'border-red-400' 
                         : 'border-blue-300'
@@ -474,7 +562,7 @@ const BookingPage = () => {
 
                 {/* Dropoff Date */}
                 <div>
-                  <label className="block text-slate-700 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-xs font-medium mb-2">
                     Dropoff Date *
                   </label>
                   <input
@@ -483,7 +571,7 @@ const BookingPage = () => {
                     value={bookingData.endDate}
                     onChange={handleDateChange}
                     min={bookingData.startDate || new Date().toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 ${
+                    className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm ${
                       bookingData.endDate && isDateBlocked(bookingData.endDate) 
                         ? 'border-red-400' 
                         : 'border-blue-300'
@@ -498,7 +586,7 @@ const BookingPage = () => {
 
                 {/* Pickup Time */}
                 <div>
-                  <label className="block text-slate-700 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-xs font-medium mb-2">
                     Pickup Time
                   </label>
                   <div className="relative">
@@ -506,7 +594,7 @@ const BookingPage = () => {
                       name="pickupTime"
                       value={bookingData.pickupTime}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer text-sm"
                       disabled={isFetchingBookings}
                     >
                       {Array.from({ length: 49 }, (_, i) => {
@@ -543,7 +631,7 @@ const BookingPage = () => {
 
                 {/* Dropoff Time */}
                 <div>
-                  <label className="block text-slate-700 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-xs font-medium mb-2">
                     Dropoff Time
                   </label>
                   <div className="relative">
@@ -551,7 +639,7 @@ const BookingPage = () => {
                       name="dropoffTime"
                       value={bookingData.dropoffTime}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none cursor-pointer text-sm"
                       disabled={isFetchingBookings}
                     >
                       {Array.from({ length: 49 }, (_, i) => {
@@ -588,7 +676,7 @@ const BookingPage = () => {
 
                 {/* Pickup Location */}
                 <div className="md:col-span-2">
-                  <label className="block text-slate-700 text-sm font-medium mb-2">
+                  <label className="block text-slate-700 text-xs font-medium mb-2">
                     Pickup Location
                   </label>
                   <input
@@ -597,7 +685,7 @@ const BookingPage = () => {
                     value={bookingData.pickupLocation}
                     onChange={handleInputChange}
                     placeholder="Enter pickup location"
-                    className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                    className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
                     disabled={isFetchingBookings}
                   />
                 </div>
@@ -605,11 +693,11 @@ const BookingPage = () => {
 
               {/* Additional Options */}
               <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Additional Options</h3>
+                <h3 className="text-base font-semibold text-slate-800 mb-4 text-sm">Additional Options</h3>
                 
                 {/* Insurance */}
                 <div className="mb-6">
-                  <label className="block text-slate-700 text-sm font-medium mb-3">
+                  <label className="block text-slate-700 text-xs font-medium mb-3">
                     Insurance Coverage
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -618,7 +706,7 @@ const BookingPage = () => {
                       { value: "premium", label: "Premium", desc: "Enhanced protection", price: "+₹500/day" },
                       { value: "comprehensive", label: "Comprehensive", desc: "Full coverage", price: "+₹1000/day" }
                     ].map(option => (
-                      <label key={option.value} className="flex items-start p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white">
+                      <label key={option.value} className="flex items-start p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white text-sm">
                         <input
                           type="radio"
                           name="insurance"
@@ -630,10 +718,10 @@ const BookingPage = () => {
                         />
                         <div className="ml-3 flex-1">
                           <div className="flex justify-between items-start">
-                            <span className="text-slate-800 font-medium">{option.label}</span>
-                            <span className="text-gold-500 text-sm">{option.price}</span>
+                            <span className="text-slate-800 font-medium text-sm">{option.label}</span>
+                            <span className="text-gold-500 text-xs">{option.price}</span>
                           </div>
-                          <p className="text-slate-600 text-sm mt-1">{option.desc}</p>
+                          <p className="text-slate-600 text-xs mt-1">{option.desc}</p>
                         </div>
                       </label>
                     ))}
@@ -641,13 +729,13 @@ const BookingPage = () => {
                 </div>
 
                 {/* Additional Driver */}
-                <label className="flex items-center justify-between p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white">
+                <label className="flex items-center justify-between p-4 border border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors bg-white text-sm">
                   <div>
-                    <span className="text-slate-800 font-medium">Additional Driver</span>
-                    <p className="text-slate-600 text-sm mt-1">Add an extra driver to your booking</p>
+                    <span className="text-slate-800 font-medium text-sm">Additional Driver</span>
+                    <p className="text-slate-600 text-xs mt-1">Add an extra driver to your booking</p>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-gold-500 mr-3">+₹300/day</span>
+                    <span className="text-gold-500 mr-3 text-xs">+₹300/day</span>
                     <input
                       type="checkbox"
                       name="additionalDriver"
@@ -660,19 +748,57 @@ const BookingPage = () => {
                 </label>
               </div>
 
+              {/* ============================== */}
+              {/*COUPON SECTION RIGHT HERE */}
+              {/* ============================== */}
+
+              {/* Apply Coupon Section */}
+              <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
+                <h3 className="text-base font-semibold text-slate-800 mb-4 text-sm">Apply Coupon</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter coupon code"
+                    className="flex-1 px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
+                  />
+                  <button
+                    onClick={validateCoupon}
+                    className="bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors text-sm"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-red-500 text-xs mt-2">{couponError}</p>
+                )}
+                {appliedCoupon && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-700 text-sm">
+                      ✓ Coupon <strong>{appliedCoupon.code}</strong> applied successfully!
+                    </p>
+                    <p className="text-green-600 text-xs mt-1">
+                      You saved ₹{calculateTotal().discount}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Proceed to Pay Button */}
               <button
                 onClick={handleProceedToPay}
                 disabled={isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)}
-                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg ${
+                className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 shadow-lg text-sm ${
                   isFetchingBookings || isLoading || !isDateRangeAvailable(bookingData.startDate, bookingData.endDate)
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'bg-gold-500 hover:bg-gold-600 text-slate-900 hover:scale-105'
                 }`}
               >
                 {isFetchingBookings ? "Checking Availability..." : 
-                 isLoading ? "Processing..." :
-                 !isDateRangeAvailable(bookingData.startDate, bookingData.endDate) ? "Vehicle Unavailable for Selected Dates" : 
-                 "Proceed to Pay"}
+                isLoading ? "Processing..." :
+                !isDateRangeAvailable(bookingData.startDate, bookingData.endDate) ? "Vehicle Unavailable for Selected Dates" : 
+                "Proceed to Pay"}
               </button>
             </div>
           </div>
@@ -680,7 +806,7 @@ const BookingPage = () => {
           {/* Right Side - Booking Summary */}
           <div className="lg:w-1/3">
             <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-200 shadow-2xl sticky top-6">
-              <h3 className="text-xl font-semibold text-slate-800 mb-6">Booking Summary</h3>
+              <h3 className="text-lg font-semibold text-slate-800 mb-6 text-sm">Booking Summary</h3>
               
               {/* Vehicle Info */}
               <div className="flex items-center space-x-4 mb-6 pb-6 border-b border-blue-200">
@@ -689,20 +815,20 @@ const BookingPage = () => {
                   style={{ backgroundImage: `url(${vehicle.imageUrl})` }}
                 ></div>
                 <div>
-                  <h4 className="text-slate-800 font-semibold">{vehicle.name}</h4>
-                  <p className="text-gold-500">{vehicle.price}</p>
-                  <p className="text-slate-600 text-sm">📍 {vehicle.city}</p>
+                  <h4 className="text-slate-800 font-semibold text-sm">{vehicle.name}</h4>
+                  <p className="text-gold-500 text-sm">{vehicle.price}</p>
+                  <p className="text-slate-600 text-xs">📍 {vehicle.city}</p>
                 </div>
               </div>
 
               {/* Rental Period */}
               <div className="space-y-3 mb-6 pb-6 border-b border-blue-200">
-                <div className="flex justify-between text-slate-700">
+                <div className="flex justify-between text-slate-700 text-sm">
                   <span>Rental Period</span>
                   <span>{days} day{days !== 1 ? 's' : ''}</span>
                 </div>
                 {bookingData.startDate && (
-                  <div className="text-slate-600 text-sm">
+                  <div className="text-slate-600 text-xs">
                     {new Date(bookingData.startDate).toLocaleDateString()} - {new Date(bookingData.endDate).toLocaleDateString()}
                   </div>
                 )}
@@ -710,41 +836,66 @@ const BookingPage = () => {
 
               {/* Cost Breakdown */}
               <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-slate-700">
-                  <span>Base Rate</span>
+                <div className="flex justify-between text-slate-700 text-sm">
+                  <span>Base Rate ({days} days)</span>
                   <span>₹{costBreakdown.baseRate.toLocaleString()}</span>
                 </div>
                 
                 {costBreakdown.insuranceCost > 0 && (
-                  <div className="flex justify-between text-slate-700">
+                  <div className="flex justify-between text-slate-700 text-sm">
                     <span>Insurance</span>
                     <span>+₹{costBreakdown.insuranceCost.toLocaleString()}</span>
                   </div>
                 )}
                 
                 {costBreakdown.additionalDriverCost > 0 && (
-                  <div className="flex justify-between text-slate-700">
+                  <div className="flex justify-between text-slate-700 text-sm">
                     <span>Additional Driver</span>
                     <span>+₹{costBreakdown.additionalDriverCost.toLocaleString()}</span>
                   </div>
                 )}
                 
                 {/* Convenience Fee */}
-                <div className="flex justify-between text-slate-700">
+                <div className="flex justify-between text-slate-700 text-sm">
                   <span>Convenience Fee</span>
                   <span>+₹{costBreakdown.convenienceFee.toLocaleString()}</span>
                 </div>
+                
+                {/* Coupon Discount */}
+                {appliedCoupon && costBreakdown.discount > 0 && (
+                  <div className="flex justify-between text-green-700 text-sm bg-green-50 p-2 rounded-lg border border-green-200">
+                    <span className="flex items-center">
+                      <span className="mr-1">🎫</span>
+                      Coupon Discount ({appliedCoupon.code})
+                    </span>
+                    <span className="font-semibold">-₹{costBreakdown.discount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
 
               {/* Total */}
               <div className="flex justify-between items-center pt-4 border-t border-blue-200">
-                <span className="text-slate-800 font-semibold text-lg">Total Amount</span>
-                <span className="text-gold-500 font-bold text-xl">₹{costBreakdown.total.toLocaleString()}</span>
+                <span className="text-slate-800 font-semibold text-base">Total Amount</span>
+                <span className="text-gold-500 font-bold text-lg">
+                  ₹{costBreakdown.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
+
+              {/* Original Price if Discount Applied */}
+              {appliedCoupon && costBreakdown.discount > 0 && (
+                <div className="text-center mt-2">
+                  <span className="text-slate-500 text-xs line-through">
+                    Original: ₹{costBreakdown.subtotal.toLocaleString()}
+                  </span>
+                  <span className="text-green-600 text-xs font-semibold ml-2">
+                    You save ₹{costBreakdown.discount.toFixed(2)}
+                  </span>
+                </div>
+              )}
 
               {/* Availability Status */}
               {bookingData.startDate && bookingData.endDate && (
-                <div className={`mt-4 p-3 rounded-lg text-sm ${
+                <div className={`mt-4 p-3 rounded-lg text-xs ${
                   isDateRangeAvailable(bookingData.startDate, bookingData.endDate) 
                     ? 'bg-green-500/20 text-green-700 border border-green-300' 
                     : 'bg-red-500/20 text-red-700 border border-red-300'
@@ -765,7 +916,7 @@ const BookingPage = () => {
               {/* Unavailable Periods Info */}
               {unavailablePeriods.length > 0 && (
                 <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-300 rounded-lg">
-                  <p className="text-yellow-700 text-sm font-semibold mb-2">📅 Unavailable Periods:</p>
+                  <p className="text-yellow-700 text-xs font-semibold mb-2">📅 Unavailable Periods:</p>
                   <div className="space-y-1 text-yellow-600 text-xs">
                     {unavailablePeriods.slice(0, 3).map((period, index) => (
                       <div key={index}>

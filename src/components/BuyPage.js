@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { vehiclesAPI } from "./../services/apiService";
+import allRideRentalImage from "../assets/AllRideRental.jpg";
 
 const BuyPage = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -12,6 +13,11 @@ const BuyPage = () => {
   });
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
     fetchVehicles();
     fetchCities();
   }, [filters]);
@@ -71,7 +77,7 @@ const BuyPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-slate-600 text-xl">Loading premium vehicles for sale...</div>
+        <div className="text-slate-600 text-base">Loading premium vehicles for sale...</div>
       </div>
     );
   }
@@ -79,20 +85,25 @@ const BuyPage = () => {
   return (
     <div className="relative min-h-screen">
       {/* Background Image with Lighter Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
-        }}
-      ></div>
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Right Background Image - Inverted */}
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-1/2 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url(${allRideRentalImage})`,
+            backgroundPosition: "right center",
+            filter: "invert(100%)"
+          }}
+        ></div>
+      </div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-light text-slate-800 mb-6">
+          <h1 className="text-4xl font-light text-slate-800 mb-6">
             Premium <span className="font-semibold text-gold-500">Vehicle Sales</span>
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Own a piece of luxury from our meticulously maintained premium fleet
           </p>
         </div>
@@ -104,7 +115,7 @@ const BuyPage = () => {
             <select 
               value={filters.type}
               onChange={(e) => handleFilterChange("type", e.target.value)}
-              className="appearance-none bg-white/95 backdrop-blur-lg text-slate-800 px-4 py-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-gold-500 pr-10 cursor-pointer"
+              className="appearance-none bg-white/95 backdrop-blur-lg text-slate-800 px-4 py-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-gold-500 pr-10 cursor-pointer text-sm"
             >
               <option value="all">All Vehicles</option>
               <option value="Car">Cars Only</option>
@@ -122,7 +133,7 @@ const BuyPage = () => {
             <select 
               value={filters.city}
               onChange={(e) => handleFilterChange("city", e.target.value)}
-              className="appearance-none bg-white/95 backdrop-blur-lg text-slate-800 px-4 py-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-gold-500 pr-10 cursor-pointer"
+              className="appearance-none bg-white/95 backdrop-blur-lg text-slate-800 px-4 py-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-gold-500 pr-10 cursor-pointer text-sm"
             >
               <option value="all">All Cities</option>
               {cities.map(city => (
@@ -140,11 +151,11 @@ const BuyPage = () => {
         {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-slate-800 p-6 rounded-lg mb-8 text-center">
-            <div className="text-xl mb-2">🚗 Unable to Load Vehicles for Sale</div>
-            <p className="mb-4">{error}</p>
+            <div className="text-lg mb-2">🚗 Unable to Load Vehicles for Sale</div>
+            <p className="mb-4 text-sm">{error}</p>
             <button 
               onClick={handleRetry}
-              className="bg-gold-500 hover:bg-gold-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300"
+              className="bg-gold-500 hover:bg-gold-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 text-sm"
             >
               Try Again
             </button>
@@ -162,7 +173,7 @@ const BuyPage = () => {
                 >
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-300"></div>
                   <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       vehicle.type === "Car" 
                         ? "bg-blue-500 text-white" 
                         : "bg-green-500 text-white"
@@ -172,7 +183,7 @@ const BuyPage = () => {
                   </div>
                   {/* Sale Badge */}
                   <div className="absolute top-4 right-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                       FOR SALE
                     </span>
                   </div>
@@ -181,20 +192,20 @@ const BuyPage = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="text-xl font-semibold text-slate-800 group-hover:text-gold-500 transition-colors">
+                      <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gold-500 transition-colors">
                         {vehicle.name}
                       </h3>
-                      <p className="text-slate-600">Location: {vehicle.city}</p>
+                      <p className="text-slate-600 text-sm">Location: {vehicle.city}</p>
                     </div>
                   </div>
                   
                   <div className="text-sm text-slate-600 mb-4">
                     <div className="flex justify-between mb-2">
-                      <span className="text-gold-500 font-semibold text-lg">💰 {vehicle.salePrice || vehicle.price}</span>
-                      {vehicle.fuelType && <span>⛽ {vehicle.fuelType}</span>}
+                      <span className="text-gold-500 font-semibold text-base">💰 {vehicle.salePrice || vehicle.price}</span>
+                      {vehicle.fuelType && <span className="text-xs">⛽ {vehicle.fuelType}</span>}
                     </div>
                     {vehicle.rating && vehicle.rating > 0 && (
-                      <div className="flex items-center">
+                      <div className="flex items-center text-xs">
                         <span className="text-yellow-500 mr-1">⭐</span>
                         <span>{vehicle.rating}/5.0</span>
                       </div>
@@ -202,7 +213,7 @@ const BuyPage = () => {
                   </div>
 
                   <div className="mb-4">
-                    <h4 className="font-semibold text-slate-800 mb-2">Premium Features:</h4>
+                    <h4 className="font-semibold text-slate-800 mb-2 text-sm">Premium Features:</h4>
                     <div className="flex flex-wrap gap-1">
                       {vehicle.features && vehicle.features.length > 0 ? (
                         vehicle.features.map((feature, index) => (
@@ -220,10 +231,10 @@ const BuyPage = () => {
                   </div>
 
                   <div className="flex space-x-3">
-                    <button className="flex-1 bg-gold-500 hover:bg-gold-600 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg">
+                    <button className="flex-1 bg-gold-500 hover:bg-gold-600 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-sm">
                       View Details
                     </button>
-                    <button className="flex-1 bg-blue-50 hover:bg-blue-100 text-slate-800 py-2 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 border border-blue-200">
+                    <button className="flex-1 bg-blue-50 hover:bg-blue-100 text-slate-800 py-2 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 border border-blue-200 text-sm">
                       Schedule Test Drive
                     </button>
                   </div>
@@ -235,7 +246,7 @@ const BuyPage = () => {
 
         {/* No Vehicles Message */}
         {!error && vehicles.length === 0 && (
-          <div className="text-center text-slate-600 text-xl py-16">
+          <div className="text-center text-slate-600 text-lg py-16">
             No vehicles for sale found matching your criteria.
           </div>
         )}
@@ -243,11 +254,11 @@ const BuyPage = () => {
         {/* CTA Section */}
         {!error && (
           <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-12 border border-blue-200 shadow-lg text-center mt-16 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-semibold text-slate-800 mb-4">Interested in Premium Ownership?</h2>
-            <p className="text-slate-600 mb-6 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-semibold text-slate-800 mb-4">Interested in Premium Ownership?</h2>
+            <p className="text-slate-600 mb-6 max-w-2xl mx-auto text-sm">
               Contact our luxury vehicle specialists for personalized consultation and exclusive offers
             </p>
-            <button className="bg-gold-500 hover:bg-gold-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg">
+            <button className="bg-gold-500 hover:bg-gold-600 text-white px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 shadow-lg">
               Contact Sales Executive
             </button>
           </div>

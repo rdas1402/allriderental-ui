@@ -57,7 +57,7 @@ const BookingConfirmationPage = () => {
   if (!vehicle && !booking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-slate-600">Loading...</div>
+        <div className="text-slate-600 text-sm">Loading...</div>
       </div>
     );
   }
@@ -79,11 +79,11 @@ const BookingConfirmationPage = () => {
             <span className="text-4xl text-green-500">✓</span>
           </div>
 
-          <h1 className="text-3xl font-light text-slate-800 mb-4">
+          <h1 className="text-2xl font-light text-slate-800 mb-4">
             Booking Confirmed! 🎉
           </h1>
           
-          <p className="text-slate-600 text-lg mb-8">
+          <p className="text-slate-600 text-sm mb-8">
             Your {vehicle?.name || booking?.vehicle} has been successfully booked
           </p>
 
@@ -95,9 +95,9 @@ const BookingConfirmationPage = () => {
                 style={{ backgroundImage: `url(${vehicle?.imageUrl || booking?.vehicleImage})` }}
               ></div>
               <div className="flex-1 text-left">
-                <h3 className="text-slate-800 font-semibold text-xl mb-2">{vehicle?.name || booking?.vehicle}</h3>
-                <p className="text-gold-500 font-semibold text-lg mb-1">{vehicle?.price || booking?.total}</p>
-                <p className="text-slate-600 mb-2">📍 {vehicle?.city || booking?.pickupLocation}</p>
+                <h3 className="text-slate-800 font-semibold text-lg mb-2">{vehicle?.name || booking?.vehicle}</h3>
+                <p className="text-gold-500 font-semibold text-base mb-1">{vehicle?.price || booking?.total}</p>
+                <p className="text-slate-600 mb-2 text-sm">📍 {vehicle?.city || booking?.pickupLocation}</p>
                 <div className="flex flex-wrap gap-1">
                   {(vehicle?.features || booking?.features || []).map((feature, index) => {
                     const featureText = typeof feature === 'string' 
@@ -120,27 +120,27 @@ const BookingConfirmationPage = () => {
 
           {/* Booking Details */}
           <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
-            <h3 className="text-slate-800 font-semibold mb-4 text-left">Booking Details</h3>
-            <div className="grid grid-cols-2 gap-4 text-left">
+            <h3 className="text-slate-800 font-semibold mb-4 text-left text-sm">Booking Details</h3>
+            <div className="grid grid-cols-2 gap-4 text-left text-sm">
               <div>
-                <p className="text-slate-600 text-sm">Booking ID</p>
+                <p className="text-slate-600 text-xs">Booking ID</p>
                 <p className="text-slate-800 font-medium">{booking?.id || `#BK${Date.now().toString().slice(-6)}`}</p>
               </div>
               <div>
-                <p className="text-slate-600 text-sm">Booking Date</p>
+                <p className="text-slate-600 text-xs">Booking Date</p>
                 <p className="text-slate-800 font-medium">{new Date().toLocaleDateString()}</p>
               </div>
               <div>
-                <p className="text-slate-600 text-sm">Pickup Location</p>
+                <p className="text-slate-600 text-xs">Pickup Location</p>
                 <p className="text-slate-800 font-medium">{vehicle?.city || booking?.pickupLocation}</p>
               </div>
               <div>
-                <p className="text-slate-600 text-sm">Status</p>
+                <p className="text-slate-600 text-xs">Status</p>
                 <p className="text-green-500 font-medium">Confirmed & Paid</p>
               </div>
               {booking?.duration && (
                 <div className="col-span-2">
-                  <p className="text-slate-600 text-sm">Rental Duration</p>
+                  <p className="text-slate-600 text-xs">Rental Duration</p>
                   <p className="text-slate-800 font-medium">{booking.duration}</p>
                 </div>
               )}
@@ -151,13 +151,13 @@ const BookingConfirmationPage = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={handleContinueRenting}
-              className="flex-1 bg-gold-500 hover:bg-gold-600 text-slate-900 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+              className="flex-1 bg-gold-500 hover:bg-gold-600 text-slate-900 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-sm"
             >
               Continue Renting
             </button>
             <button
               onClick={handleViewBookings}
-              className="flex-1 bg-blue-50 hover:bg-blue-100 text-slate-700 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 border border-blue-300"
+              className="flex-1 bg-blue-50 hover:bg-blue-100 text-slate-700 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 border border-blue-300 text-sm"
             >
               View My Bookings
             </button>
@@ -165,7 +165,7 @@ const BookingConfirmationPage = () => {
 
           {/* Additional Info */}
           <div className="mt-8 text-center">
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-500 text-xs">
               A confirmation has been sent to your registered phone number
             </p>
             <p className="text-slate-400 text-xs mt-2">
@@ -174,14 +174,14 @@ const BookingConfirmationPage = () => {
           </div>
           {/* Notification Status */}
           <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
-            <div className="flex items-center justify-center space-x-4 text-green-700">
+            <div className="flex items-center justify-center space-x-4 text-green-700 text-sm">
               <div className="flex items-center">
                 <span className="mr-2">📧</span>
-                <span className="text-sm">Confirmation email sent</span>
+                <span className="text-xs">Confirmation email sent</span>
               </div>
               <div className="flex items-center">
                 <span className="mr-2">📱</span>
-                <span className="text-sm">SMS confirmation sent</span>
+                <span className="text-xs">SMS confirmation sent</span>
               </div>
             </div>
             <p className="text-green-600 text-xs text-center mt-2">

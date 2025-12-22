@@ -34,7 +34,7 @@ const AdminStatsDashboard = () => {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-500 mx-auto mb-4"></div>
-        <p className="text-slate-600">Loading statistics...</p>
+        <p className="text-slate-600 text-sm">Loading statistics...</p>
       </div>
     );
   }
@@ -42,14 +42,14 @@ const AdminStatsDashboard = () => {
   if (!stats) {
     return (
       <div className="text-center py-8 bg-blue-50 rounded-xl border border-blue-200">
-        <p className="text-slate-600">Unable to load statistics</p>
+        <p className="text-slate-600 text-sm">Unable to load statistics</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-slate-800 mb-4">Dashboard Overview</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">Dashboard Overview</h3>
       
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -123,17 +123,17 @@ const AdminStatsDashboard = () => {
 
       {/* Quick Actions */}
       <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-        <h4 className="text-slate-800 font-semibold mb-4">Quick Actions</h4>
+        <h4 className="text-slate-800 font-semibold mb-4 text-sm">Quick Actions</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button 
             onClick={() => handleNavigation('/rent')}
-            className="bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+            className="bg-gold-500 hover:bg-gold-600 text-slate-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-sm"
           >
             View All Vehicles
           </button>
           <button 
             onClick={() => handleNavigation('/booking')}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-sm"
           >
             Create Test Booking
           </button>
@@ -157,8 +157,8 @@ const StatCard = ({ title, value, color, icon }) => {
     <div className={`rounded-xl p-4 border ${colorClasses[color]} shadow-lg`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-sm opacity-80">{title}</p>
+          <p className="text-xl font-bold">{value}</p>
+          <p className="text-xs opacity-80">{title}</p>
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
