@@ -4,16 +4,13 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-      // Single Page Apps for GitHub Pages
-      var segmentCount = 0;
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        '/allriderental-ui' +
-        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + 
-        l.search +
-        l.hash
-      );
+      // For GitHub Pages + custom domain – redirect to root, preserve the path for React Router
+      (function() {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        window.location.replace('/' + path.slice(1) + search + hash);
+      })();
     </script>
   </head>
   <body>
