@@ -7,7 +7,6 @@ import tharImage from "../assets/Tharimg.png";
 import ScorpioNImage from "../assets/ScorpioNImage.png";
 import selfDriveImage from "../assets/selfDriveImage.png";
 import allRideRentalImage from "../assets/AllRideRental.jpg";
-import carRentalImage from "../assets/car_rental_img.jpg";
 import { vehiclesAPI, couponsAPI } from "../services/apiService";
 import { useCity } from "../context/CityContext";
 
@@ -140,7 +139,7 @@ const HomePage = () => {
       description: selectedCity === "All Cities"
         ? "Comfortable rides for your journey"
         : `Comfortable rides across ${selectedCity}`,
-      image: carRentalImage,
+      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
       link: "/rent?type=car",
       category: "car",
       icon: "🚗"
