@@ -36,6 +36,18 @@ const Layout = ({ children }) => {
     setUserInfo(null);
   };
 
+  // Helper: detect page reload
+  const isPageReload = () => {
+    if (typeof performance !== 'undefined' && performance.getEntriesByType) {
+      const navEntries = performance.getEntriesByType('navigation');
+      if (navEntries.length > 0) {
+        return navEntries[0].type === 'reload';
+      }
+    }
+    // Fallback for older browsers
+    return (window.performance.navigation && window.performance.navigation.type === 1);
+  };
+
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
@@ -123,16 +135,14 @@ const Layout = ({ children }) => {
 
   // Handle city selection
   const handleCitySelect = (city) => {
-    updateCity(city); // Use context updateCity
+    updateCity(city);   // update context
+    localStorage.setItem("selectedCity", city);
     setShowLocationPopup(false);
-    
-    // Refresh the page if we're on rent page to show filtered vehicles
-    if (location.pathname === "/rent") {
-      window.location.reload();
-    }
+    // Do NOT call window.location.reload()
+    // The active page (e.g., RentPage) will react to selectedCity via useEffect
   };
 
-  // Enhanced authentication verification
+  // Authentication verification with reload handling
   useEffect(() => {
     const verifyAuthentication = async () => {
       try {
@@ -142,43 +152,56 @@ const Layout = ({ children }) => {
         const userData = localStorage.getItem("userData");
         const userPhone = localStorage.getItem("userPhone");
         
+        // If it's a page reload and user is not on the root, skip clearing auth
+        const reload = isPageReload();
+        if (reload && location.pathname !== '/') {
+          // Do not redirect; assume user was already on this page before reload
+          setIsVerifyingAuth(false);
+          return;
+        }
+        
         if (!loggedIn || !userData || !userPhone) {
           clearAuthData();
+          // Only redirect to login if we are not already on a public route
+          if (location.pathname !== '/' && !location.pathname.startsWith('/login')) {
+            navigate("/login", { state: { from: location.pathname } });
+          }
           return;
         }
 
-        // Verify user exists and session is valid
-        const userProfile = await authAPI.getUserProfile(userPhone);
-        
-        if (userProfile && userProfile.success) {
-          const user = userProfile.profile?.user || userProfile.user || userProfile;
-          
-          // Validate that the user data matches
-          if (user.phone === userPhone) {
-            setIsLoggedIn(true);
-            setUserInfo(user);
-            
-            // Update localStorage with fresh data
-            localStorage.setItem("userData", JSON.stringify(userProfile));
+        // Verify user with backend – but don't clear auth on network errors
+        try {
+          const userProfile = await authAPI.getUserProfile(userPhone);
+          if (userProfile && userProfile.success) {
+            const user = userProfile.profile?.user || userProfile.user || userProfile;
+            if (user.phone === userPhone) {
+              setIsLoggedIn(true);
+              setUserInfo(user);
+              // update localStorage fresh
+              localStorage.setItem("userData", JSON.stringify(userProfile));
+            } else {
+              clearAuthData();
+              if (location.pathname !== '/') navigate("/login");
+            }
           } else {
-            // Phone number mismatch - clear auth
-            clearAuthData();
+            // If API returns failure but user was previously logged in, keep them logged in?
+            // For safety, we keep logged in but maybe show a message.
+            console.warn("User profile API returned unexpected response");
           }
-        } else {
-          // Invalid user response - clear auth
-          clearAuthData();
+        } catch (error) {
+          console.error("Auth verification network error:", error);
+          // Do not clear auth; just assume session is still valid
         }
       } catch (error) {
-        console.error("Authentication verification failed:", error);
-        // On any error, clear authentication to be safe
-        clearAuthData();
+        console.error("Auth verification error:", error);
       } finally {
         setIsVerifyingAuth(false);
       }
     };
 
     verifyAuthentication();
-  }, [location]);
+  }, [location.pathname]);
+
 
   const menuItems = [
     { name: "Home", id: "home", path: "/" },
