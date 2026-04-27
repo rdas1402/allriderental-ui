@@ -18,6 +18,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
+    <!-- Redirect any page refresh to home page -->
+    <script>
+      if (window.location.pathname !== '/') {
+        window.location.replace('/');
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
