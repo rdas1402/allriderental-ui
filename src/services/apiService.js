@@ -13,7 +13,7 @@ const getImageUrl = (imageFilename) => {
   }
   
   // If it's a filename, construct the full URL
-  return `${API_BASE_URL.replace('/api', '')}/images/${imageFilename}`;
+  return `${API_BASE_URL.replace('/api', '')}/api/images/${imageFilename}`;
 };
 
 // Helper function to transform vehicle data with proper image URLs
