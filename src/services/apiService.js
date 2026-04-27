@@ -1,7 +1,7 @@
 // services/apiService.js
 
 // FIXED: Add proper fallback and handle undefined case
-const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://all-ride-rental-env.eba-9wmp3buc.ap-south-1.elasticbeanstalk.com') + "/api";
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'https://allriderental-loadbalancer-977975536.ap-south-1.elb.amazonaws.com') + "/api";
 
 // Helper function to construct image URLs
 const getImageUrl = (imageFilename) => {
