@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.520b6306.css",
-    "main.js": "/static/js/main.e8fb06b3.js",
+    "main.js": "/static/js/main.d7f5beeb.js",
     "static/media/road_nature.png": "/static/media/road_nature.11f3683b333373d27997.png",
     "static/media/road.png": "/static/media/road.078643f227285f1dc88d.png",
     "static/media/2.PNG": "/static/media/2.b42f4e886777c1bc6ae7.PNG",
@@ -35,10 +35,10 @@
     "static/media/bike1.jpg": "/static/media/bike1.1f985a7dccbeb85425ba.jpg",
     "index.html": "/index.html",
     "main.520b6306.css.map": "/static/css/main.520b6306.css.map",
-    "main.e8fb06b3.js.map": "/static/js/main.e8fb06b3.js.map"
+    "main.d7f5beeb.js.map": "/static/js/main.d7f5beeb.js.map"
   },
   "entrypoints": [
     "static/css/main.520b6306.css",
-    "static/js/main.e8fb06b3.js"
+    "static/js/main.d7f5beeb.js"
   ]
 }
