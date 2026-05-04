@@ -341,6 +341,7 @@ const LoginPage = () => {
                   name="name"
                   value={registrationData.name}
                   onChange={handleRegistrationChange}
+                  onKeyPress={(e) => e.key === "Enter" && handleRegisterUser()}
                   placeholder="Enter your full name"
                   className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
                   required
@@ -356,6 +357,7 @@ const LoginPage = () => {
                   name="email"
                   value={registrationData.email}
                   onChange={handleRegistrationChange}
+                  onKeyPress={(e) => e.key === "Enter" && handleRegisterUser()}
                   placeholder="Enter your email address"
                   className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
                   required
@@ -371,6 +373,7 @@ const LoginPage = () => {
                   name="dob"
                   value={registrationData.dob}
                   onChange={handleRegistrationChange}
+                  onKeyPress={(e) => e.key === "Enter" && handleRegisterUser()}
                   className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
                   max={new Date().toISOString().split('T')[0]}
                   required
@@ -427,6 +430,7 @@ const LoginPage = () => {
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+                    onKeyPress={(e) => e.key === "Enter" && handleSendOtp()}
                     placeholder="Enter your 10-digit phone number"
                     className="w-full pl-12 pr-4 py-4 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-sm"
                     maxLength={10}
@@ -464,6 +468,7 @@ const LoginPage = () => {
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onKeyPress={(e) => e.key === "Enter" && handleVerifyOtp()}
                     placeholder="Enter 6-digit OTP"
                     className="w-full px-4 py-4 bg-white border border-blue-300 rounded-xl text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 text-center text-2xl tracking-widest text-sm"
                     maxLength={6}

@@ -1,6 +1,6 @@
 // App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout.js';
 import HomePage from './components/HomePage.js';
 import RentPage from './components/RentPage.js';
@@ -31,7 +31,7 @@ function App() {
   
   return (
     <CityProvider>
-      <Router basename={basename}>
+      <Router>
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />

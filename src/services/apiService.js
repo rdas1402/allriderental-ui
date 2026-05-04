@@ -1,19 +1,18 @@
 // services/apiService.js
 
 // FIXED: Add proper fallback and handle undefined case
-const API_BASE_URL = (process.env.REACT_APP_API_URL || 'https://allriderental-loadbalancer-977975536.ap-south-1.elb.amazonaws.com') + "/api";
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'https://api.allriderental.in') + "/api";
 
 // Helper function to construct image URLs
 const getImageUrl = (imageFilename) => {
   if (!imageFilename) return null;
-  
-  // If it's already a full URL, return as is
-  if (imageFilename.startsWith('http')) {
-    return imageFilename;
-  }
-  
-  // If it's a filename, construct the full URL
-  return `${API_BASE_URL.replace('/api', '')}/api/images/${imageFilename}`;
+  if (imageFilename.startsWith('http')) return imageFilename;
+
+  // Extract base domain from API_BASE_URL (remove trailing '/api')
+  const baseDomain = API_BASE_URL.endsWith('/api') 
+    ? API_BASE_URL.slice(0, -4) 
+    : API_BASE_URL;
+  return `${baseDomain}/api/images/${imageFilename}`;
 };
 
 // Helper function to transform vehicle data with proper image URLs
