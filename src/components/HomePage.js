@@ -10,6 +10,84 @@ import allRideRentalImage from "../assets/AllRideRental.jpg";
 import { vehiclesAPI, couponsAPI } from "../services/apiService";
 import { useCity } from "../context/CityContext";
 
+// ------------- Blob Shadow Component (for vehicle images) -------------
+const BlobVehicleImage = ({ src, alt, position = "left", className = "" }) => {
+  const isLeft = position === "left";
+
+  return (
+    <div className={`relative flex items-center justify-center ${className}`}>
+      
+      {/* GREY BLOB */}
+      <svg
+        className="absolute"
+        width="520"
+        height="600"
+        viewBox="0 0 600 500"
+        style={{
+          bottom: "-100px",
+          zIndex: 0,
+          opacity: 0.9,
+          filter: "blur(1px)",
+          
+          // 🔥 KEY CHANGE
+          left: isLeft ? "-250px" : "auto",
+          right: !isLeft ? "-200px" : "auto",
+        }}
+      >
+        <path
+          fill="#dadada"
+          d="M60,320
+   C80,200 260,120 420,120
+   C600,120 700,240 680,340
+   C660,440 480,480 300,470
+   C160,460 80,400 65,350
+   C60,335 58,330 60,320 Z"
+        />
+      </svg>
+
+      {/* YELLOW BLOB */}
+      <svg
+        className="absolute"
+        width="600"
+        height="420"
+        viewBox="0 0 700 500"
+        style={{
+          bottom: "-120px",
+          zIndex: 1,
+          opacity: 0.95,
+          filter: "blur(0.5px)",
+
+          // 🔥 KEY CHANGE
+          right: isLeft ? "100px" : "auto",
+          left: !isLeft ? "100px" : "auto",
+        }}
+      >
+        <path
+          fill="#e6c65c"
+          d="M100,300
+   C120,180 320,120 520,170
+   C700,220 720,360 560,420
+   C380,470 160,430 110,350
+   C95,325 95,310 100,300 Z"
+        />
+      </svg>
+
+      {/* VEHICLE */}
+      <img
+        src={src}
+        alt={alt}
+        className="relative z-10 drop-shadow-2xl transform hover:scale-105 transition duration-300"
+        style={{
+          maxHeight: "80%",
+          objectFit: "contain",
+          filter: "drop-shadow(0 25px 40px rgba(0,0,0,0.2))"
+        }}
+      />
+    </div>
+  );
+};
+// ----------------------------------------------------------------------
+
 const HomePage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [saveBigVehicles, setSaveBigVehicles] = useState([]);
@@ -21,7 +99,7 @@ const HomePage = () => {
   const [showCouponTooltip, setShowCouponTooltip] = useState(false);
   const navigate = useNavigate();
 
-  // Get selected city from CityContext instead of localStorage
+  // Get selected city from CityContext
   const { selectedCity } = useCity();
 
   // Fetch discounted vehicles and active coupons from API
@@ -122,7 +200,7 @@ const HomePage = () => {
     navigate("/rent?type=bike");
   };
 
-  // Enhanced services with city parameter
+  // Services offered (unchanged)
   const servicesOffered = [
     {
       title: "Bike Rentals",
@@ -162,16 +240,6 @@ const HomePage = () => {
       category: "outstation",
       icon: "🗺️"
     },
-    // {
-    //   title: "Luxury Vehicles",
-    //   description: selectedCity === "All Cities"
-    //     ? "Premium travel experience"
-    //     : `Premium vehicles in ${selectedCity}`,
-    //   image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    //   link: "/rent?type=luxury",
-    //   category: "luxury",
-    //   icon: "⭐"
-    // },
     {
       title: "Self Drive",
       description: selectedCity === "All Cities"
@@ -184,7 +252,7 @@ const HomePage = () => {
     }
   ];
 
-  // Updated testimonials with real Google reviews
+  // Testimonials (unchanged)
   const testimonials = [
     {
       id: 1,
@@ -242,7 +310,7 @@ const HomePage = () => {
     }
   ];
 
-  // Updated stats with Google reviews count
+  // Stats (unchanged)
   const stats = [
     { number: "300+", label: "BIKES ON ROAD" },
     { number: "10", label: "YEARS OF EXCELLENCE" },
@@ -266,10 +334,8 @@ const HomePage = () => {
     return (currentTestimonial + offset + testimonials.length) % testimonials.length;
   };
 
-  // Copy coupon code to clipboard
   const copyCouponCode = (code) => {
     navigator.clipboard.writeText(code);
-    // Show feedback
     const button = document.getElementById('copy-coupon-btn');
     if (button) {
       const originalText = button.textContent;
@@ -280,7 +346,7 @@ const HomePage = () => {
     }
   };
 
-  // Floating Coupon Component
+  // Floating Coupon Component (unchanged)
   const FloatingCoupon = () => {
     if (!showCoupon || activeCoupons.length === 0 || couponsLoading) return null;
   
@@ -288,18 +354,14 @@ const HomePage = () => {
   
     return (
       <div className={`floating-coupon ${!showCoupon ? 'closed' : ''}`}>
-        {/* Coupon Tooltip */}
         <div className={`coupon-tooltip ${showCouponTooltip ? 'show' : ''}`}>
           <div className="relative">
-            {/* Close button */}
             <button 
               onClick={() => setShowCouponTooltip(false)}
               className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
             >
               ✕
             </button>
-            
-            {/* Tooltip content */}
             <div className="mb-3">
               <h4 className="font-bold text-gray-800 text-sm mb-2">How to apply coupon:</h4>
               <ol className="text-xs text-gray-600 space-y-1 pl-4 list-decimal">
@@ -309,26 +371,20 @@ const HomePage = () => {
                 <li>Click "Apply" to see discount instantly</li>
               </ol>
             </div>
-            
             <div className="text-xs text-gray-500 pt-2 border-t border-gray-200">
               <p><strong>Terms:</strong> Min. order ₹{coupon.minAmount}. Valid until {new Date(coupon.validUntil).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
   
-        {/* Floating Coupon Card - Yellow Design */}
         <div className="relative">
-          {/* Close button */}
           <button 
             onClick={() => setShowCoupon(false)}
             className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-10"
           >
             ✕
           </button>
-          
-          {/* Coupon card - Yellow gradient */}
           <div className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 rounded-xl shadow-2xl p-3 w-48 transform hover:scale-105 transition-transform duration-300 border-2 border-yellow-300 border-opacity-50 hover:border-yellow-400">
-            {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-2 shadow-md">
@@ -339,8 +395,6 @@ const HomePage = () => {
                   <p className="text-white text-xs opacity-90">Limited Time</p>
                 </div>
               </div>
-              
-              {/* Question mark for how to apply */}
               <button 
                 onClick={() => setShowCouponTooltip(!showCouponTooltip)}
                 onMouseEnter={() => setShowCouponTooltip(true)}
@@ -350,8 +404,6 @@ const HomePage = () => {
                 ?
               </button>
             </div>
-            
-            {/* Coupon code - White background */}
             <div className="bg-white rounded-lg p-2 mb-2 shadow-inner">
               <p className="text-gray-500 text-xs font-medium">Use code:</p>
               <div className="flex items-center justify-between mt-1">
@@ -367,27 +419,19 @@ const HomePage = () => {
                 </button>
               </div>
             </div>
-            
-            {/* Discount info */}
             <div className="text-center">
               <p className="text-white text-sm font-bold mb-1">
                 Get {coupon.discountValue}{coupon.discountType === 'percentage' ? '%' : ''} OFF
               </p>
               <div className="flex items-center justify-center space-x-2">
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-2 py-1">
-                  <p className="text-white text-xs font-semibold">
-                    Min. ₹{coupon.minAmount}
-                  </p>
+                  <p className="text-white text-xs font-semibold">Min. ₹{coupon.minAmount}</p>
                 </div>
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-2 py-1">
-                  <p className="text-white text-xs font-semibold">
-                    ⏰ Limited
-                  </p>
+                  <p className="text-white text-xs font-semibold">⏰ Limited</p>
                 </div>
               </div>
             </div>
-            
-            {/* Animated pulse effect */}
             <div className="absolute -top-1 -right-1 w-3 h-3">
               <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
               <div className="relative w-3 h-3 bg-red-500 rounded-full"></div>
@@ -398,7 +442,7 @@ const HomePage = () => {
     );
   };
 
-  // Google Reviews Badge Component
+  // Google Reviews Badge (unchanged)
   const GoogleReviewsBadge = () => (
     <div className="text-center mb-8 sm:mb-12">
       <div className="inline-flex items-center bg-white rounded-full px-6 py-3 shadow-lg border border-amber-200 mb-4">
@@ -430,11 +474,10 @@ const HomePage = () => {
     </div>
   );
 
-  // Testimonial Card Component
+  // Testimonial Card (unchanged)
   const TestimonialCard = ({ review }) => {
     return (
       <div className="bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100 shadow-lg sm:shadow-2xl transition-all duration-500 h-full flex flex-col">
-        {/* Rating stars */}
         <div className="flex justify-center mb-4 sm:mb-6">
           {[...Array(5)].map((_, i) => (
             <span 
@@ -449,36 +492,23 @@ const HomePage = () => {
             </span>
           ))}
         </div>
-        
-        {/* Review text */}
         <div className="flex-grow mb-4 sm:mb-6 md:mb-8">
           <p className="text-slate-600 leading-relaxed text-xs sm:text-sm text-center italic line-clamp-6">
             "{review.text}"
           </p>
         </div>
-        
         <div className="border-t border-gray-200 my-4 sm:my-6"></div>
-        
-        {/* Author info */}
         <div className="text-center">
           <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-1 sm:mb-2">
             {review.author}
           </h4>
           <div className="flex items-center justify-center space-x-2">
             <span className="text-amber-500">★</span>
-            <span className="text-slate-700 font-semibold">
-              {review.rating}
-            </span>
+            <span className="text-slate-700 font-semibold">{review.rating}</span>
             <span className="text-slate-500">•</span>
-            <span className="text-slate-500 text-xs sm:text-xs font-semibold">
-              {review.platform}
-            </span>
+            <span className="text-slate-500 text-xs sm:text-xs font-semibold">{review.platform}</span>
           </div>
-          {review.time && (
-            <p className="text-slate-400 text-xs mt-1">
-              {review.time}
-            </p>
-          )}
+          {review.time && <p className="text-slate-400 text-xs mt-1">{review.time}</p>}
         </div>
       </div>
     );
@@ -487,8 +517,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white mobile-container">
       {/* Fixed Background Images */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Right Background Image - Inverted */}
+      {/* <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div 
           className="absolute right-0 top-0 bottom-0 w-1/2 bg-cover bg-center bg-no-repeat opacity-20"
           style={{
@@ -497,12 +526,11 @@ const HomePage = () => {
             filter: "invert(100%)"
           }}
         ></div>
-      </div>
+      </div> */}
 
-      {/* Floating Coupon Component */}
       <FloatingCoupon />
 
-      {/* Hero Section */}
+      {/* Hero Section (unchanged) */}
       <div className="relative bg-white hero-section z-10">
         <div 
           className="h-[500px] sm:h-[600px] md:h-[800px] bg-cover bg-center bg-no-repeat rounded-b-3xl overflow-hidden"
@@ -516,15 +544,12 @@ const HomePage = () => {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 sm:mb-6 leading-tight mobile-hero-title">
                 Welcome to <span className="font-semibold text-gold-400">All Ride Rental</span>
               </h1>
-              
-              {/* Location Badge */}
               {selectedCity && selectedCity !== "All Cities" && (
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4 border border-white/30">
                   <span className="text-white text-sm mr-2">📍</span>
                   <span className="text-white text-sm font-medium">Serving {selectedCity}</span>
                 </div>
               )}
-              
               <p className="text-base sm:text-lg md:text-xl mb-4 sm:mb-6 max-w-3xl mx-auto leading-relaxed mobile-hero-subtitle">
                 {selectedCity === "All Cities" 
                   ? "Experience luxury travel with our premium fleet of cars and bikes. Your journey begins with us."
@@ -532,8 +557,6 @@ const HomePage = () => {
                 }
               </p>
             </div>
-
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-2 sm:mt-4">
               <button 
                 onClick={handleRentCars}
@@ -548,8 +571,6 @@ const HomePage = () => {
                 🏍️ {selectedCity === "All Cities" ? "Discover Bikes" : `Bikes in ${selectedCity}`}
               </button>
             </div>
-
-            {/* Vehicle Cards Inside Hero */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl w-full mt-6 sm:mt-8">
               <div 
                 className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl p-4 sm:p-6 cursor-pointer hover:bg-opacity-30 transition-all duration-500 border border-white border-opacity-30 hover:scale-105 group"
@@ -560,10 +581,7 @@ const HomePage = () => {
                     src={innovacrystaImage} 
                     alt="Premium Cars"
                     className="h-40 sm:h-48 md:h-60 object-contain object-center group-hover:scale-110 transition-transform duration-300"
-                    style={{
-                      maxWidth: '100%',
-                      minWidth: '80%'
-                    }}
+                    style={{ maxWidth: '100%', minWidth: '80%' }}
                   />
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
@@ -579,7 +597,6 @@ const HomePage = () => {
                   Discover our fleet <span className="ml-2">→</span>
                 </div>
               </div>
-              
               <div 
                 className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl p-4 sm:p-6 cursor-pointer hover:bg-opacity-30 transition-all duration-500 border border-white border-opacity-30 hover:scale-105 group"
                 onClick={handleRentBikes}
@@ -589,9 +606,7 @@ const HomePage = () => {
                     src={royalenfieldimg} 
                     alt="Adventure Bikes"
                     className="h-32 sm:h-40 md:h-48 w-auto object-contain group-hover:scale-110 transition-transform duration-300"
-                    style={{
-                      transform: 'scale(1.2)'
-                    }}
+                    style={{ transform: 'scale(1.2)' }}
                   />
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
@@ -614,7 +629,8 @@ const HomePage = () => {
 
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 z-10">
-        {/* Services Offered Section */}
+
+        {/* Services Offered Section (unchanged) */}
         <section className="services_offered mb-8 sm:mb-12 relative">
           <div className="title text-center mb-8 sm:mb-16">
             <div className="inline-block mb-3 sm:mb-4">
@@ -629,8 +645,6 @@ const HomePage = () => {
                 : `Premium rental services available in ${selectedCity} for your convenience`
               }
             </p>
-            
-            {/* Current Location Indicator */}
             {selectedCity && selectedCity !== "All Cities" && (
               <div className="mt-4 inline-flex items-center bg-blue-50 border border-blue-200 rounded-full px-4 py-2">
                 <span className="text-blue-600 text-sm mr-2">📍</span>
@@ -638,7 +652,6 @@ const HomePage = () => {
               </div>
             )}
           </div>
-          
           <div className="images">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mobile-services-grid">
               {servicesOffered.map((service, index) => (
@@ -657,7 +670,6 @@ const HomePage = () => {
                           {service.icon}
                         </div>
                       </div>
-                      
                       <div className="h-40 sm:h-56 overflow-hidden relative">
                         <img 
                           src={service.image} 
@@ -666,7 +678,6 @@ const HomePage = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                       </div>
-                      
                       <div className="p-4 sm:p-6 md:p-8 text-center relative">
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                           <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gold-500 rounded-full"></div>
@@ -689,7 +700,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Our Rental Plans Section */}
+        {/* ----- OUR RENTAL PLANS SECTION (ENHANCED WITH BLOB SHADOWS) ----- */}
         <div className="mb-8 sm:mb-12 relative">
           <div className="text-center mb-8 sm:mb-12">
             <div className="inline-block mb-3 sm:mb-4">
@@ -703,10 +714,9 @@ const HomePage = () => {
             </p>
           </div>
           
-          {/* Classic Two Panel Layout */}
           <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
-            {/* Daily Rentals Panel */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl">
+            {/* Daily Rentals Panel - with blob shadow effect for Car */}
+            {/* <div className="backdrop-blur-sm overflow-hidden"> */}
               <div className="flex flex-col lg:flex-row">
                 {/* Left Side - Content */}
                 <div className="lg:w-1/2 p-4 sm:p-6 md:p-8">
@@ -714,8 +724,6 @@ const HomePage = () => {
                     <h3 className="text-xl sm:text-2xl md:text-2xl font-bold text-slate-800 mb-2 sm:mb-3">DAILY RENTALS</h3>
                     <p className="text-sm text-slate-600 mb-2">Flexible rental options for your daily needs</p>
                   </div>
-
-                  {/* Features List */}
                   <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
@@ -726,7 +734,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Choose your preferred pickup and drop-off</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">💰</span>
@@ -736,7 +743,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Pay only for hours used</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">📦</span>
@@ -746,7 +752,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Lower rates for 7+, 15+, or 30+ days</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">🛡️</span>
@@ -757,8 +762,6 @@ const HomePage = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Button */}
                   <button onClick={() => navigate('/rent')}
                     className="w-full bg-amber-400 hover:bg-amber-600 text-slate-800 py-2 sm:py-3 rounded-lg font-bold text-sm transition-all duration-300"
                   >
@@ -766,21 +769,17 @@ const HomePage = () => {
                   </button>
                 </div>
 
-                {/* Right Side - Vehicle Image */}
-                <div className="lg:w-1/2 bg-transparent flex items-start justify-center p-4 pt-0">
-                  <div className="w-full max-w-2xl -mt-4">
-                    <img 
-                      src={royalenfieldimg}
-                      alt="Premium Car"
-                      className="w-full h-80 sm:h-96 md:h-[500px] object-contain transform hover:scale-105 transition-transform duration-300"
-                    />
+                {/* Right Side - Vehicle Image with Blob Shadow Effect (Car) */}
+                <div className="lg:w-1/2 bg-transparent flex items-center justify-center p-4 pt-0">
+                  <div className="w-full max-w-2xl -mt-4 h-80 sm:h-96 md:h-[500px]">
+                    <BlobVehicleImage src={royalenfieldimg} alt="Premium Car"  position="right" />
                   </div>
                 </div>
               </div>
-            </div>
+            {/* </div> */}
 
-            {/* ARR Monthly Subscription Panel */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl">
+            {/* ARR Monthly Subscription Panel - with blob shadow effect for Bike */}
+            {/* <div className="backdrop-blur-sm overflow-hidden"> */}
               <div className="flex flex-col lg:flex-row-reverse">
                 {/* Right Side - Content */}
                 <div className="lg:w-1/2 p-4 sm:p-6 md:p-8">
@@ -788,8 +787,6 @@ const HomePage = () => {
                     <h3 className="text-xl sm:text-2xl md:text-2xl font-bold text-slate-700 mb-2 sm:mb-3">ARR MONTHLY SUBSCRIPTION</h3>
                     <p className="text-sm text-slate-600 mb-2">Long-term rental solutions with maximum benefits</p>
                   </div>
-
-                  {/* Features List */}
                   <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
@@ -800,7 +797,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Rent for 3, 6, 9, or 12 months</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">💳</span>
@@ -810,7 +806,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Pay monthly as you go</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">🎁</span>
@@ -820,7 +815,6 @@ const HomePage = () => {
                         <p className="text-slate-600 text-xs">Maintenance, 1 Helmet, & 24/7 Roadside Assistance</p>
                       </div>
                     </div>
-
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-amber-200 rounded-lg flex items-center justify-center">
                         <span className="text-sm sm:text-lg text-white">🚪</span>
@@ -831,8 +825,6 @@ const HomePage = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Button */}
                   <button 
                     onClick={() => navigate('/subscription')}
                     className="w-full bg-amber-400 hover:bg-amber-600 text-slate-800 py-2 sm:py-3 rounded-lg font-bold text-sm transition-all duration-300"
@@ -841,22 +833,18 @@ const HomePage = () => {
                   </button>
                 </div>
 
-                {/* Left Side - Vehicle Image */}
+                {/* Left Side - Vehicle Image with Blob Shadow Effect (Bike) */}
                 <div className="lg:w-1/2 bg-transparent flex items-center justify-center p-4">
-                  <div className="w-full max-w-2xl">
-                    <img 
-                      src={tharImage}
-                      alt="Premium Bike"
-                      className="w-full h-80 sm:h-96 md:h-[500px] object-contain transform hover:scale-105 transition-transform duration-300"
-                    />
+                  <div className="w-full max-w-2xl h-80 sm:h-96 md:h-[500px]">
+                    <BlobVehicleImage src={tharImage} alt="Premium Bike"  position="left"/>
                   </div>
                 </div>
               </div>
-            </div>
+            {/* </div> */}
           </div>
         </div>
 
-        {/* Save Big Section */}
+        {/* Save Big Section (unchanged) */}
         <div className="mb-8 sm:mb-16 relative">
           <div className="text-center mb-8 sm:mb-16">
             <div className="inline-block mb-3 sm:mb-4">
@@ -907,12 +895,10 @@ const HomePage = () => {
                       className="w-full h-full object-contain p-2" 
                     />
                   </div>
-
                   <div className="w-full pt-4 pr-4 pb-4 pl-20 sm:pl-24">
                     <h4 className="text-base sm:text-lg font-bold text-slate-800 mb-3 sm:mb-4 text-center">
                       {vehicle.name}
                     </h4>
-                    
                     <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
                       {vehicle.prices.map((price, idx) => (
                         <div key={idx} className="text-center">
@@ -926,7 +912,6 @@ const HomePage = () => {
                       ))}
                     </div>
                   </div>
-
                   <div className="absolute top-2 sm:top-3 -left-8 sm:-left-12">
                     <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-bold shadow-lg">
                       HOT DEAL
@@ -945,58 +930,26 @@ const HomePage = () => {
           )}
         </div>
 
-        {/* Stats Section */}
+        {/* Stats Section (unchanged) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 max-w-5xl mx-auto mb-8 sm:mb-16 relative">
-          <div 
-            className="bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:translate-y-[-4px] sm:hover:translate-y-[-8px] group"
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-amber-600 to-amber-300 bg-clip-text mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
-              300+
+          {stats.map((stat, idx) => (
+            <div 
+              key={idx}
+              className="bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:translate-y-[-4px] sm:hover:translate-y-[-8px] group"
+            >
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-amber-600 to-amber-300 bg-clip-text mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
+                {stat.number}
+              </div>
+              <div className="text-slate-600 font-semibold text-xs sm:text-xs uppercase tracking-wider">
+                {stat.label}
+              </div>
             </div>
-            <div className="text-slate-600 font-semibold text-xs sm:text-xs uppercase tracking-wider">
-              BIKES ON ROAD
-            </div>
-          </div>
-          
-          <div 
-            className="bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:translate-y-[-4px] sm:hover:translate-y-[-8px] group"
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-blue-600 to-blue-300 bg-clip-text mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
-              10
-            </div>
-            <div className="text-slate-600 font-semibold text-xs sm:text-xs uppercase tracking-wider">
-              YEARS OF EXCELLENCE
-            </div>
-          </div>
-          
-          <div 
-            className="bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:translate-y-[-4px] sm:hover:translate-y-[-8px] group"
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-green-600 to-green-300 bg-clip-text mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
-              6+
-            </div>
-            <div className="text-slate-600 font-semibold text-xs sm:text-xs uppercase tracking-wider">
-              SPREAD ACROSS CITIES
-            </div>
-          </div>
-          
-          <div 
-            className="bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:translate-y-[-4px] sm:hover:translate-y-[-8px] group"
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-red-600 to-red-300 bg-clip-text mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
-              1052+
-            </div>
-            <div className="text-slate-600 font-semibold text-xs sm:text-xs uppercase tracking-wider">
-              GOOGLE REVIEWS
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Testimonials Section */}
+        {/* Testimonials Section (unchanged) */}
         <div className="mb-8 sm:mb-16 relative">
-          {/* Google Review Badge */}
           <GoogleReviewsBadge />
-          
           <div className="text-center mb-8 sm:mb-20">
             <div className="inline-block mb-3 sm:mb-4">
               <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full mx-auto"></div>
@@ -1008,9 +961,7 @@ const HomePage = () => {
               Don't just take our word for it. See what our customers have to say about their All Ride experience.
             </p>
           </div>
-          
           <div className="relative max-w-6xl mx-auto">
-            {/* Navigation Arrows */}
             <button 
               onClick={handlePrev}
               className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 sm:-translate-x-12 z-20 bg-white rounded-full p-2 sm:p-4 shadow-lg sm:shadow-2xl hover:shadow-xl sm:hover:shadow-3xl transition-all duration-300 hover:scale-110 border border-gray-200"
@@ -1019,7 +970,6 @@ const HomePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            
             <button 
               onClick={handleNext}
               className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 sm:translate-x-12 z-20 bg-white rounded-full p-2 sm:p-4 shadow-lg sm:shadow-2xl hover:shadow-xl sm:hover:shadow-3xl transition-all duration-300 hover:scale-110 border border-gray-200"
@@ -1028,11 +978,8 @@ const HomePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-
-            {/* Testimonials Container */}
             <div className="overflow-hidden px-4 sm:px-8 md:px-12">
               <div className="flex gap-4 sm:gap-6 md:gap-8 items-center justify-center">
-                {/* Left Testimonial */}
                 <div className={`transition-all duration-500 ease-in-out ${
                   getTestimonialIndex(-1) === currentTestimonial
                     ? 'scale-110 sm:scale-125 shadow-xl sm:shadow-3xl border-2 border-amber-300 z-10 min-w-[280px] sm:min-w-[350px] md:min-w-[450px]'
@@ -1040,8 +987,6 @@ const HomePage = () => {
                 }`}>
                   <TestimonialCard review={testimonials[getTestimonialIndex(-1)]} />
                 </div>
-
-                {/* Center Testimonial */}
                 <div className={`transition-all duration-500 ease-in-out ${
                   getTestimonialIndex(0) === currentTestimonial
                     ? 'scale-110 sm:scale-125 shadow-xl sm:shadow-3xl border-2 border-amber-300 z-10 min-w-[280px] sm:min-w-[350px] md:min-w-[450px]'
@@ -1049,8 +994,6 @@ const HomePage = () => {
                 }`}>
                   <TestimonialCard review={testimonials[getTestimonialIndex(0)]} />
                 </div>
-
-                {/* Right Testimonial */}
                 <div className={`transition-all duration-500 ease-in-out ${
                   getTestimonialIndex(1) === currentTestimonial
                     ? 'scale-110 sm:scale-125 shadow-xl sm:shadow-3xl border-2 border-amber-300 z-10 min-w-[280px] sm:min-w-[350px] md:min-w-[450px]'
@@ -1060,8 +1003,6 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-
-            {/* Scroll Indicators */}
             <div className="flex justify-center mt-6 sm:mt-8 space-x-2 sm:space-x-3">
               {testimonials.map((_, index) => (
                 <button
@@ -1076,8 +1017,6 @@ const HomePage = () => {
               ))}
             </div>
           </div>
-
-          {/* Leave Review CTA */}
           <div className="text-center mt-8 sm:mt-12">
             <div className="inline-flex flex-col sm:flex-row items-center bg-gradient-to-r from-blue-50 to-amber-50 rounded-xl sm:rounded-2xl px-6 sm:px-8 py-4 sm:py-6 border border-blue-200 shadow-lg">
               <span className="text-slate-700 font-semibold text-sm sm:text-base mb-3 sm:mb-0 sm:mr-6">
@@ -1098,37 +1037,20 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Why Choose Us Section */}
+        {/* Why Choose Us Section (unchanged) */}
         <div className="relative max-w-6xl mx-auto">
-          {/* Animated Background Road - Compact */}
           <div className="absolute inset-0 overflow-hidden rounded-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50/70 via-amber-50/50 to-green-50/60"></div>
-            
-            {/* Moving Road Lines */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30 animate-pulse"></div>
             <div className="absolute bottom-6 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gray-300 to-transparent opacity-20 animate-pulse delay-75"></div>
           </div>
-
           <div className="relative bg-gradient-to-br from-white/95 via-blue-50/90 to-amber-50/90 rounded-2xl p-6 sm:p-8 border border-gray-100/80 shadow-xl overflow-hidden backdrop-blur-sm">
-            
-            {/* Animated Moving Vehicles - Smaller */}
             <div className="absolute -left-16 top-1/4 w-32 h-20 opacity-70 animate-bounce-float">
-              <img 
-                src={royalenfieldimg} 
-                alt="Bike" 
-                className="w-full h-full object-contain drop-shadow-lg"
-              />
+              <img src={royalenfieldimg} alt="Bike" className="w-full h-full object-contain drop-shadow-lg" />
             </div>
-            
             <div className="absolute -right-16 bottom-1/3 w-40 h-24 opacity-80 animate-bounce-float delay-1000">
-              <img 
-                src={hiluxImage} 
-                alt="Car" 
-                className="w-full h-full object-contain drop-shadow-lg"
-              />
+              <img src={hiluxImage} alt="Car" className="w-full h-full object-contain drop-shadow-lg" />
             </div>
-
-            {/* Compact Main Content */}
             <div className="text-center mb-8 relative z-10">
               <div className="inline-flex items-center justify-center mb-3">
                 <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping"></div>
@@ -1137,7 +1059,6 @@ const HomePage = () => {
                 <div className="w-16 sm:w-24 h-1 bg-gradient-to-r from-green-500 via-blue-500 to-amber-500 rounded-full mx-2"></div>
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-ping delay-700"></div>
               </div>
-              
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
                 Why Ride With <span className="text-transparent bg-gradient-to-r from-blue-600 via-amber-500 to-green-600 bg-clip-text">Us</span>?
               </h2>
@@ -1145,128 +1066,77 @@ const HomePage = () => {
                 Experience premium service with our exceptional fleet
               </p>
             </div>
-
-            {/* Compact Features Grid with All Designs */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">
-              {/* Premium Quality Card */}
               <div className="group relative bg-white/90 backdrop-blur-md rounded-xl p-4 sm:p-5 border border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                {/* Animated Vehicle Background */}
                 <div className="absolute inset-0 overflow-hidden opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                  <img 
-                    src={innovacrystaImage} 
-                    alt="Luxury Car" 
-                    className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700"
-                  />
+                  <img src={innovacrystaImage} alt="Luxury Car" className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700" />
                 </div>
-
-                {/* Shimmer Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-
                 <div className="relative z-10">
-                  {/* Animated Icon */}
                   <div className="relative mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-lg mx-auto">
                       <span className="text-xl text-white">⭐</span>
                     </div>
                   </div>
-
                   <h3 className="text-lg font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors text-center">
                     Premium Quality
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed text-center">
                     Immaculately maintained luxury vehicles
                   </p>
-
-                  {/* Feature Highlights */}
                   <div className="mt-3 flex justify-center space-x-2">
                     <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-semibold">Premium</span>
                   </div>
                 </div>
-                
-                {/* Interactive Bottom Bar */}
                 <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-amber-500 group-hover:w-full transition-all duration-500"></div>
               </div>
-
-              {/* Best Value Card */}
               <div className="group relative bg-white/90 backdrop-blur-md rounded-xl p-4 sm:p-5 border border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                {/* Animated Bike Background */}
                 <div className="absolute inset-0 overflow-hidden opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                  <img 
-                    src={royalenfieldimg} 
-                    alt="Premium Bike" 
-                    className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700"
-                  />
+                  <img src={royalenfieldimg} alt="Premium Bike" className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700" />
                 </div>
-
-                {/* Shimmer Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-100/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-
                 <div className="relative z-10">
-                  {/* Animated Icon */}
                   <div className="relative mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-lg mx-auto">
                       <span className="text-xl text-white">💰</span>
                     </div>
                   </div>
-
                   <h3 className="text-lg font-bold text-slate-800 mb-2 group-hover:text-amber-600 transition-colors text-center">
                     Best Value
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed text-center">
                     Competitive pricing, no hidden costs
                   </p>
-
-                  {/* Feature Highlights */}
                   <div className="mt-3 flex justify-center space-x-2">
                     <span className="bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-xs font-semibold">Affordable</span>
                   </div>
                 </div>
-                
-                {/* Interactive Bottom Bar */}
                 <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-green-500 group-hover:w-full transition-all duration-500"></div>
               </div>
-
-              {/* 24/7 Support Card */}
               <div className="group relative bg-white/90 backdrop-blur-md rounded-xl p-4 sm:p-5 border border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                {/* Animated Service Background */}
                 <div className="absolute inset-0 overflow-hidden opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                  <img 
-                    src={selfDriveImage} 
-                    alt="Service Vehicle" 
-                    className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700"
-                  />
+                  <img src={selfDriveImage} alt="Service Vehicle" className="w-full h-full object-cover scale-110 group-hover:scale-120 transition-transform duration-700" />
                 </div>
-
-                {/* Shimmer Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-100/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-
                 <div className="relative z-10">
-                  {/* Animated Icon */}
                   <div className="relative mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-lg mx-auto">
                       <span className="text-xl text-white">🔧</span>
                     </div>
                   </div>
-
                   <h3 className="text-lg font-bold text-slate-800 mb-2 group-hover:text-green-600 transition-colors text-center">
                     24/7 Support
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed text-center">
                     Round-the-clock assistance
                   </p>
-
-                  {/* Feature Highlights */}
                   <div className="mt-3 flex justify-center space-x-2">
                     <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold">24/7</span>
                   </div>
                 </div>
-                
-                {/* Interactive Bottom Bar */}
                 <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-500 to-blue-500 group-hover:w-full transition-all duration-500"></div>
               </div>
             </div>
-
-            {/* Compact CTA Section */}
             <div className="text-center mt-8 relative z-10">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-50/80 to-amber-50/80 rounded-xl px-6 py-4 border border-blue-200/50 shadow-lg backdrop-blur-sm">
                 <span className="text-slate-700 text-sm font-semibold mr-4">Ready to ride?</span>
