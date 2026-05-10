@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.43d932e3.css",
-    "main.js": "/static/js/main.cdea83ec.js",
+    "main.css": "/static/css/main.f93900c3.css",
+    "main.js": "/static/js/main.f27fc61e.js",
     "static/media/road_nature.png": "/static/media/road_nature.11f3683b333373d27997.png",
     "static/media/road.png": "/static/media/road.078643f227285f1dc88d.png",
     "static/media/2.PNG": "/static/media/2.b42f4e886777c1bc6ae7.PNG",
@@ -10,7 +10,7 @@
     "static/media/rider.png": "/static/media/rider.5e2c44520ef870557d98.png",
     "static/media/ScorpioNImage.png": "/static/media/ScorpioNImage.b2998eea0889fb5218a3.png",
     "static/media/Tharimg.png": "/static/media/Tharimg.70177e8995260605ae75.png",
-    "static/media/randomImg.png": "/static/media/randomImg.be6cea1afb2f8cedc57c.png",
+    "static/media/ktm_duke_390.png": "/static/media/ktm_duke_390.0f3626b74925ae7836d4.png",
     "static/media/royalenfieldimg.png": "/static/media/royalenfieldimg.feefeaaf2d5cf51d3d33.png",
     "static/media/majuli_island.jpg": "/static/media/majuli_island.646823c959a8daab8d47.jpg",
     "static/media/road_slice_4.png": "/static/media/road_slice_4.201e1a271c9faabd871f.png",
@@ -27,6 +27,7 @@
     "static/media/car1.jpg": "/static/media/car1.c4be24a7b8f04b7c19da.jpg",
     "static/media/rupay.png": "/static/media/rupay.567a4b29150954d1ade6.png",
     "static/media/innove_crysta.png": "/static/media/innove_crysta.fe9b12017c119b9732a3.png",
+    "static/media/car_rental_img.jpg": "/static/media/car_rental_img.d22b9265dd8a8f899907.jpg",
     "static/media/dawki.jpg": "/static/media/dawki.03b15908dfc8c1a5d79e.jpg",
     "static/media/qr_code.jpg": "/static/media/qr_code.e662be6b0bab8e5e7c8e.jpg",
     "static/media/visa.png": "/static/media/visa.6db3760f93ced36363a3.png",
@@ -35,11 +36,11 @@
     "static/media/gpay.png": "/static/media/gpay.b72af35b2f7e9aa1d000.png",
     "static/media/bike1.jpg": "/static/media/bike1.1f985a7dccbeb85425ba.jpg",
     "index.html": "/index.html",
-    "main.43d932e3.css.map": "/static/css/main.43d932e3.css.map",
-    "main.cdea83ec.js.map": "/static/js/main.cdea83ec.js.map"
+    "main.f93900c3.css.map": "/static/css/main.f93900c3.css.map",
+    "main.f27fc61e.js.map": "/static/js/main.f27fc61e.js.map"
   },
   "entrypoints": [
-    "static/css/main.43d932e3.css",
-    "static/js/main.cdea83ec.js"
+    "static/css/main.f93900c3.css",
+    "static/js/main.f27fc61e.js"
   ]
 }
